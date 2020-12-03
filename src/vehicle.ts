@@ -1,4 +1,4 @@
-import {Observable, Subscriber, timer} from "rxjs";
+import {Observable, timer} from "rxjs";
 import {map} from "rxjs/operators";
 
 export enum Status {
@@ -14,29 +14,19 @@ export class Vehicle {
 
   private static readonly CAPACITIES: number[] = [20000, 41000, 64000, 75000, 100000];
 
-  private consumption: number;
-  private directionup: boolean;
-  private moving: boolean = true;
-  private mpsSpeed: number;
+  private _consumption: number;
+  private _directionup: boolean;
+  private _moving: boolean = true;
+  private _mpsSpeed: number;
   private _status: Status;
-  private startTime: number = Date.now();
-  private soc: number;
-  private capacity: number;
-  distance: number = 0;
+  private _startTime: number = Date.now();
+  private _startSOC: number;
+  private _soc: number;
+  private _capacity: number;
+  private _distance: number = 0;
   private _observable: Observable<Vehicle>
 
   constructor() {
-    let kph = Phaser.Math.Between(90, 120);
-    this.mpsSpeed = kph / 3.6; // convert kph to mps
-    let index = kph / 90;
-    index = Math.pow(index, 2); // square 2 for air resistance
-    this.consumption = (Phaser.Math.Between(150, 250));
-    this.consumption = this.consumption * index;
-    this.directionup = Math.random()*2 < 1;
-    this._status = Status.NEW;
-    let capacity: number = Vehicle.CAPACITIES[Math.floor(Math.random()*Vehicle.CAPACITIES.length)];
-    this.soc = Phaser.Math.Between(10000, capacity); // minimum 10kWh soc
-
     this._observable = timer(0, 1000)
       .pipe(
         map(value => {
@@ -46,11 +36,11 @@ export class Vehicle {
   }
 
   public update(): void {
-    if (this.moving) {
-      const delta = (Date.now() - this.startTime) * 16;
-      this.distance = (delta/1000) * this.mpsSpeed;
-      let wattHoursPerMeter = this.consumption * this.distance;
-      let newSoc = this.soc - wattHoursPerMeter;
+    if (this._moving) {
+      const delta = (Date.now() - this._startTime) * 16;
+      this._distance = (delta/1000) * this._mpsSpeed;
+      let wattHoursPerMeter = this._consumption * this._distance;
+      let newSoc = this._startSOC - wattHoursPerMeter;
     }
   }
 
@@ -64,5 +54,77 @@ export class Vehicle {
 
   get observable(): Observable<Vehicle> {
     return this._observable;
+  }
+
+  get consumption(): number {
+    return this._consumption;
+  }
+
+  set consumption(value: number) {
+    this._consumption = value;
+  }
+
+  get directionup(): boolean {
+    return this._directionup;
+  }
+
+  set directionup(value: boolean) {
+    this._directionup = value;
+  }
+
+  get moving(): boolean {
+    return this._moving;
+  }
+
+  set moving(value: boolean) {
+    this._moving = value;
+  }
+
+  get mpsSpeed(): number {
+    return this._mpsSpeed;
+  }
+
+  set mpsSpeed(value: number) {
+    this._mpsSpeed = value;
+  }
+
+  get startTime(): number {
+    return this._startTime;
+  }
+
+  set startTime(value: number) {
+    this._startTime = value;
+  }
+
+  get startSOC(): number {
+    return this._startSOC;
+  }
+
+  set startSOC(value: number) {
+    this._startSOC = value;
+  }
+
+  get capacity(): number {
+    return this._capacity;
+  }
+
+  set capacity(value: number) {
+    this._capacity = value;
+  }
+
+  get distance(): number {
+    return this._distance;
+  }
+
+  set distance(value: number) {
+    this._distance = value;
+  }
+
+  get soc(): number {
+    return this._soc;
+  }
+
+  set soc(value: number) {
+    this._soc = value;
   }
 }

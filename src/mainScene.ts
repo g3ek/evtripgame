@@ -1,16 +1,17 @@
-import {Route} from "./route";
 import {Vehicle} from "./vehicle";
-import {from, observable, Observable, Subscription, timer} from "rxjs";
+import {Subscription} from "rxjs";
 import {EvtripEventDispatcher} from "./evtrip-event-dispatcher";
+import {VehicleFactory} from "./vehicle-factory";
+import {Controller} from "./controller";
+import {VehicleSprite} from "./vehicle-sprite";
+import {RouteGraphics} from "./route-graphics";
 
 export class MainScene extends Phaser.Scene {
 
-  private static TIME_MULTIPLIER: number = 8;
-
-  private vehicles: Vehicle[] = [];
-  private starttime: number = 0;
-  private readonly route = new Route(this);
+  private readonly routeGraphics = new RouteGraphics(this);
   private eventDispatcher: EvtripEventDispatcher = new EvtripEventDispatcher();
+  private controller: Controller = new Controller(this.routeGraphics);
+  private vehicleFactory: VehicleFactory = new VehicleFactory();
 
   constructor(config: string | Phaser.Types.Scenes.SettingsConfig) {
     super(config);
@@ -20,9 +21,8 @@ export class MainScene extends Phaser.Scene {
   }
 
   create(): void {
-    this.route.setEventDispatcher(this.eventDispatcher);
-    this.route.render(250);
-    this.addVehicle();
+    this.routeGraphics.render(250);
+    this.addVehicle(); // begin immediately
     this.time.addEvent({
       delay: Phaser.Math.Between(5000*8, 10000*8),
       loop: true,
@@ -53,7 +53,10 @@ export class MainScene extends Phaser.Scene {
         socText.setVisible(true);
         vehicle = thevehicle;
         subscription = thevehicle.observable.subscribe(v => {
-          socText.setText("Distance: " + v.distance);
+          socText.setText(
+            "Distance: " + v.distance + "\n" +
+            "SoC: " +v.soc
+          );
         });
       }
     });
@@ -61,12 +64,14 @@ export class MainScene extends Phaser.Scene {
 
   update(time: number, delta: number) {
     super.update(time, delta);
-    this.route.update();
+    this.controller.update();
+    this.routeGraphics.update(this.controller.vehicles);
   }
 
-  private addVehicle(): Vehicle {
-    const vehicle = new Vehicle();
-    this.route.addVehicle(vehicle);
-    return vehicle;
+  private addVehicle(): void {
+    let vehicle = this.vehicleFactory.create();
+    let vehicleSprite = new VehicleSprite(vehicle, this.eventDispatcher);
+    vehicleSprite.create(this);
+    this.controller.addVehicle(vehicleSprite);
   }
 }

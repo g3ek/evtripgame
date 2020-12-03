@@ -1,10 +1,7 @@
 import {Vehicle} from "./vehicle";
-import Sprite = Phaser.GameObjects.Sprite;
-import Graphics = Phaser.GameObjects.Graphics;
-import TextureManager = Phaser.Textures.TextureManager;
-import {Observable} from "rxjs";
-import Pointer = Phaser.Input.Pointer;
 import {EvtripEventDispatcher} from "./evtrip-event-dispatcher";
+import Graphics = Phaser.GameObjects.Graphics;
+import Pointer = Phaser.Input.Pointer;
 
 export class VehicleSprite {
 
@@ -46,5 +43,9 @@ export class VehicleSprite {
 
   sprite(): Graphics {
     return this.circle;
+  }
+
+  getVehicle(): Vehicle {
+    return this.vehicle;
   }
 }
