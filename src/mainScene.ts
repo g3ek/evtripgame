@@ -5,6 +5,11 @@ import {VehicleFactory} from "./vehicle-factory";
 import {Controller} from "./controller";
 import {VehicleSprite} from "./vehicle-sprite";
 import {RouteGraphics} from "./route-graphics";
+import {Clock} from "./clock";
+import {ChargingStationSelection} from "./charging-station-selection";
+import {ChargingStationFactory} from "./charging-station-factory";
+import {ChargingStation} from "./charging-station";
+import {ChargingStationSprite} from "./charging-station-sprite";
 
 export class MainScene extends Phaser.Scene {
 
@@ -12,19 +17,25 @@ export class MainScene extends Phaser.Scene {
   private eventDispatcher: EvtripEventDispatcher = new EvtripEventDispatcher();
   private controller: Controller = new Controller(this.routeGraphics);
   private vehicleFactory: VehicleFactory = new VehicleFactory();
+  private chargingStationFactory: ChargingStationFactory = new ChargingStationFactory();
 
   constructor(config: string | Phaser.Types.Scenes.SettingsConfig) {
     super(config);
   }
 
-  preLoad(): void {
+  preload(): void {
+    this.load.html("chargingstationselection", "assets/html/chargingstationselection.html");
   }
 
   create(): void {
+    let clock = new Clock(this);
+    clock.create();
+    let chargingStationSelection = new ChargingStationSelection("chargingstationselection", this.eventDispatcher);
+    chargingStationSelection.create(this);
     this.routeGraphics.render(250);
     this.addVehicle(); // begin immediately
     this.time.addEvent({
-      delay: Phaser.Math.Between(5000*8, 10000*8),
+      delay: Phaser.Math.Between(5000 * 8, 10000 * 8),
       loop: true,
       startAt: 5000,
       callback: () => {
@@ -55,10 +66,13 @@ export class MainScene extends Phaser.Scene {
         subscription = thevehicle.observable.subscribe(v => {
           socText.setText(
             "Distance: " + v.distance + "\n" +
-            "SoC: " +v.soc
+            "SoC: " + v.soc
           );
         });
       }
+    });
+    this.eventDispatcher.on("addchargingstation", (power: number, distance: number) => {
+      this.addChargingStation(power, distance);
     });
   }
 
@@ -73,5 +87,15 @@ export class MainScene extends Phaser.Scene {
     let vehicleSprite = new VehicleSprite(vehicle, this.eventDispatcher);
     vehicleSprite.create(this);
     this.controller.addVehicle(vehicleSprite);
+  }
+
+  private addChargingStation(power: number, distance: number): void {
+    let chargingStation = new ChargingStation();
+    chargingStation.locationInMeters = distance * 1000;
+    chargingStation.power = power;
+    let csSprite = new ChargingStationSprite(chargingStation);
+    csSprite.create(this);
+    this.controller.addChargingStation(csSprite);
+    this.routeGraphics.renderChargingStation(csSprite);
   }
 }

@@ -1,0 +1,46 @@
+<style>
+  .selectbox {
+    border: 1px solid #42464b;
+    border-radius: 6px;
+    /*height: 300px;*/
+    margin: 20px auto 0;
+    /*width: 400px;*/
+    color: black;
+    /*font-family: 'Open Sans', sans-serif;*/
+    font-family: 'Arial', sans-serif;
+    font-size: 35px;
+    padding: 10px;
+  }
+
+  select {
+    font-size: 35px;
+  }
+
+  input {
+    font-size: 35px;
+  }
+
+  button {
+    font-size: 35px;
+  }
+
+</style>
+<div class="selectbox">
+  <div>
+    <p id="message">Add station</p>
+  </div>
+  <div>
+    <label>Charging station:
+      <select name="stations">
+      </select>
+    </label>
+  </div>
+  <div>
+    <label>Distance:
+      <input type="text" name="distance" size="3" maxlength="3">
+    </label>
+  </div>
+  <div>
+    <button id="add" type="button">Add</button>
+  </div>
+</div>

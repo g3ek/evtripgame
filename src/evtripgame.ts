@@ -1,8 +1,8 @@
 import "phaser";
+import {MainScene} from "./mainScene";
 import GameConfig = Phaser.Types.Core.GameConfig;
 import ScaleModes = Phaser.Scale.ScaleModes;
 import Center = Phaser.Scale.Center;
-import {MainScene} from "./mainScene";
 
 const config: GameConfig = {
   title: "EVTrip",
@@ -11,6 +11,9 @@ const config: GameConfig = {
   parent: "game",
   backgroundColor: "eaeafa",
   scene: [MainScene],
+  dom: {
+    createContainer: true
+  },
   scale: {
     parent: "game",
     mode: ScaleModes.FIT,

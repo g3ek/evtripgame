@@ -1,4 +1,5 @@
 import {VehicleSprite} from "./vehicle-sprite";
+import {ChargingStationSprite} from "./charging-station-sprite";
 
 export class RouteGraphics {
 
@@ -40,5 +41,12 @@ export class RouteGraphics {
       sprite.sprite().x = this.x;
       sprite.sprite().y = y + this.margin;
     });
+  }
+
+  renderChargingStation(csSprite: ChargingStationSprite): void {
+    const locationInMeters = csSprite.chargingStation.locationInMeters;
+    let y = locationInMeters / this.distanceToPixelsFactor;
+    csSprite.circle.x = this.x;
+    csSprite.circle.y = y + this.margin;
   }
 }

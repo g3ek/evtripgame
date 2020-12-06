@@ -15,14 +15,15 @@ export class VehicleSprite {
   }
 
   create(scene: Phaser.Scene): void {
+    let radius: number = 20;
     this.circle = scene.add.graphics({
       fillStyle: {
         color: 0xa0a00a,
         alpha: 1
       }
     });
-    this.circle.fillCircle(0, 0, 20);
-    this.circle.setInteractive(new Phaser.Geom.Circle(0, 0, 20), Phaser.Geom.Circle.Contains);
+    this.circle.fillCircle(0, 0, radius);
+    this.circle.setInteractive(new Phaser.Geom.Circle(0, 0, radius), Phaser.Geom.Circle.Contains);
 
     let vehicleSprite = this;
     let gfx: Graphics = this.circle;
@@ -31,10 +32,6 @@ export class VehicleSprite {
       this.eventDispatcher.emit("showvehiclestats", this.vehicle);
     })
 
-  }
-
-  update(): void {
-    this.vehicle.update();
   }
 
   distance(): number {

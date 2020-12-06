@@ -12,8 +12,6 @@ export enum Status {
 
 export class Vehicle {
 
-  private static readonly CAPACITIES: number[] = [20000, 41000, 64000, 75000, 100000];
-
   private _consumption: number;
   private _directionup: boolean;
   private _moving: boolean = true;
@@ -33,15 +31,6 @@ export class Vehicle {
           return this;
         })
       );
-  }
-
-  public update(): void {
-    if (this._moving) {
-      const delta = (Date.now() - this._startTime) * 16;
-      this._distance = (delta/1000) * this._mpsSpeed;
-      let wattHoursPerMeter = this._consumption * this._distance;
-      let newSoc = this._startSOC - wattHoursPerMeter;
-    }
   }
 
   get status(): Status {
