@@ -3,7 +3,7 @@ import {ChargingStationSprite} from "./charging-station-sprite";
 
 export class RouteGraphics {
 
-  private static DISTANCE_METRES: number = 250000; // 250km
+  static DISTANCE_METRES: number = 250000; // 250km
 
   private scene: Phaser.Scene;
   private margin: number = 50;

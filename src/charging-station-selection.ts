@@ -2,6 +2,7 @@ import DOMElement = Phaser.GameObjects.DOMElement;
 import {Scene} from "phaser";
 import {ChargingStationFactory} from "./charging-station-factory";
 import {EvtripEventDispatcher} from "./evtrip-event-dispatcher";
+import {RouteGraphics} from "./route-graphics";
 
 export class ChargingStationSelection {
 
@@ -27,12 +28,24 @@ export class ChargingStationSelection {
     let messageElement = <HTMLParagraphElement>this.form.getChildByID("message");
     addButton.addEventListener('click', () => {
       messageElement.textContent = "Add station";
-      if (!distanceField.value.match("^[0-9]+$")) { // only accept numbers, nothing else
-        messageElement.textContent = "Distance data incorrect.";
-      } else {
+      const valid: boolean = this.validate(messageElement, distanceField);
+      if (valid) {
         this.eventDispatcher.emit("addchargingstation", select.value, distanceField.value);
       }
     });
   }
 
+  private validate(messageElement: HTMLParagraphElement, distanceField: HTMLInputElement) {
+    if (!distanceField.value.match("^[0-9]+$")) { // only accept numbers, nothing else
+      messageElement.textContent = "Distance data incorrect.";
+      return false;
+    } else {
+      const distance: number = Number(distanceField.value);
+      if (distance * 1000 > RouteGraphics.DISTANCE_METRES) {
+        messageElement.textContent = "Route is "+(RouteGraphics.DISTANCE_METRES/1000);
+        return false;
+      }
+    }
+    return true;
+  }
 }

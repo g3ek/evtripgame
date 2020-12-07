@@ -78,7 +78,7 @@ export class MainScene extends Phaser.Scene {
 
   update(time: number, delta: number) {
     super.update(time, delta);
-    this.controller.update();
+    this.controller.update(delta);
     this.routeGraphics.update(this.controller.vehicles);
   }
 
