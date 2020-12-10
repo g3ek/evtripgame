@@ -12,7 +12,7 @@ export class VehicleFactory {
     let consumption = (Phaser.Math.Between(150, 250));
     consumption *= index;
     const directionup = Math.random()*2 < 1;
-    const status = Status.NEW;
+    const status = Status.MOVING;
     const capacity: number = VehicleFactory.CAPACITIES[Math.floor(Math.random()*VehicleFactory.CAPACITIES.length)];
     const startSOC = Phaser.Math.Between(10000, capacity); // minimum 10kWh soc
 

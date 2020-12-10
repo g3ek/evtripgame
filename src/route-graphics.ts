@@ -1,5 +1,6 @@
 import {VehicleSprite} from "./vehicle-sprite";
 import {ChargingStationSprite} from "./charging-station-sprite";
+import {Status} from "./vehicle";
 
 export class RouteGraphics {
 
@@ -36,17 +37,27 @@ export class RouteGraphics {
 
   update(vehicleSprites: VehicleSprite[]): void {
     vehicleSprites.forEach(sprite => {
-      let distanceInMetres = sprite.distance();
-      let y = distanceInMetres / this.distanceToPixelsFactor;
-      sprite.sprite().x = this.x;
-      sprite.sprite().y = y + this.margin;
+      let vehicle = sprite.getVehicle();
+      if (vehicle.status === Status.MOVING) {
+        let distanceInMetres = sprite.distance();
+        let y = distanceInMetres / this.distanceToPixelsFactor;
+        sprite.sprite().x = this.x;
+        sprite.sprite().y = y + this.margin;
+      }
     });
   }
 
   renderChargingStation(csSprite: ChargingStationSprite): void {
     const locationInMeters = csSprite.chargingStation.locationInMeters;
     let y = locationInMeters / this.distanceToPixelsFactor;
-    csSprite.circle.x = this.x;
+    csSprite.circle.x = this.x - 25;
     csSprite.circle.y = y + this.margin;
+  }
+
+  renderChargingVehicle(vehicleSprite: VehicleSprite, chargingStationSprite: ChargingStationSprite): void {
+    let chargingStation = chargingStationSprite.chargingStation;
+    vehicleSprite.getVehicle().distance = chargingStation.locationInMeters; // debatable
+    vehicleSprite.sprite().y = chargingStationSprite.circle.y;
+    vehicleSprite.sprite().x = this.x - 40 - (chargingStation.vehicles.length * 20);
   }
 }
