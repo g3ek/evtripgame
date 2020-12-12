@@ -21,8 +21,10 @@ export class Vehicle {
   private _startSOC: number;
   private _soc: number;
   private _capacity: number;
+  private _startDistance: number = 0;
   private _distance: number = 0;
   private _observable: Observable<Vehicle>
+  private _totalTime: number = 0;
 
   constructor() {
     this._observable = timer(0, 1000)
@@ -115,5 +117,25 @@ export class Vehicle {
 
   set soc(value: number) {
     this._soc = value;
+  }
+
+  get totalTime(): number {
+    return this._totalTime;
+  }
+
+  set totalTime(value: number) {
+    this._totalTime = value;
+  }
+
+  get startDistance(): number {
+    return this._startDistance;
+  }
+
+  set startDistance(value: number) {
+    this._startDistance = value;
+  }
+
+  get totalDistance() {
+    return this.startDistance + this.distance;
   }
 }

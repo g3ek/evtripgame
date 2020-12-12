@@ -39,7 +39,7 @@ export class RouteGraphics {
     vehicleSprites.forEach(sprite => {
       let vehicle = sprite.getVehicle();
       if (vehicle.status === Status.MOVING) {
-        let distanceInMetres = sprite.distance();
+        let distanceInMetres = sprite.distance() + sprite.getVehicle().startDistance;
         let y = distanceInMetres / this.distanceToPixelsFactor;
         sprite.sprite().x = this.x;
         sprite.sprite().y = y + this.margin;
@@ -59,5 +59,12 @@ export class RouteGraphics {
     vehicleSprite.getVehicle().distance = chargingStation.locationInMeters; // debatable
     vehicleSprite.sprite().y = chargingStationSprite.circle.y;
     vehicleSprite.sprite().x = this.x - 40 - (chargingStation.vehicles.length * 20);
+  }
+
+  renderMovingVehicle(vSprite: VehicleSprite) {
+    let distanceInMetres = vSprite.distance() + vSprite.getVehicle().startDistance;
+    let y = distanceInMetres / this.distanceToPixelsFactor;
+    vSprite.sprite().y = y;
+    vSprite.sprite().x = this.x;
   }
 }

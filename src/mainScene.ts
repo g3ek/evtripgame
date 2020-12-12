@@ -10,6 +10,7 @@ import {ChargingStationSelection} from "./charging-station-selection";
 import {ChargingStationFactory} from "./charging-station-factory";
 import {ChargingStation} from "./charging-station";
 import {ChargingStationSprite} from "./charging-station-sprite";
+import {CommonStyle} from "./common-style";
 
 export class MainScene extends Phaser.Scene {
 
@@ -43,9 +44,7 @@ export class MainScene extends Phaser.Scene {
       }
     });
 
-    let socText = this.add.text(30, 550, "Soc: ", {
-      color: 'black'
-    });
+    let socText = this.add.text(30, 750, "Soc: ", CommonStyle.NORMAL_STYLE);
     socText.setVisible(false);
 
     let subscription: Subscription = null;
@@ -64,9 +63,17 @@ export class MainScene extends Phaser.Scene {
         socText.setVisible(true);
         vehicle = thevehicle;
         subscription = thevehicle.observable.subscribe(v => {
+          let kms = v.distance / 1000;
+          kms = (Math.round(kms*100)) / 100;
+          const factor = v.capacity / 100;
+          const socPercent = Math.round((v.soc / factor)*100) / 100;
+          const capacity = v.capacity / 1000;
+          const consumption = Math.round(v.consumption);
           socText.setText(
-            "Distance: " + v.distance + "\n" +
-            "SoC: " + v.soc
+            "Distance: " + kms + " km\n" +
+            "SoC: " + socPercent + " %\n" +
+            "Wh/km (~): " + consumption + "\n" +
+            "Capacity: " + capacity + " kWh"
           );
         });
       }
