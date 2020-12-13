@@ -2,11 +2,16 @@
 
 Electriv Vehicle Trip Simulator game.
 
-TODO: charging stations management and everything else. ;-)
-
-Dor beetle:
-1° de range in km van het voertuig
-Peter sent Today at 9:52 PM
-2° de lengte van het traject
-Peter sent Today at 9:52 PM
-3° status van een laadpaal evtueel
+TODO:
+charging stations management and everything else. ;-)
+road length in header
+show charging station status when selected
+color vehicles according to soc to indicate at a glance
+distance intervals markings near road
+pause/resume button
+configurable time-multiplier
+charging station slots
+charging power tapering after ~80%
+instructions/start screen
+game over sequence
+stats screen after game over
