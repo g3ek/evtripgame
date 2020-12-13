@@ -1,10 +1,12 @@
 import {VehicleSprite} from "./vehicle-sprite";
 import {ChargingStationSprite} from "./charging-station-sprite";
-import {Status} from "./vehicle";
+import {Status, Vehicle} from "./vehicle";
+import {ChargingStation} from "./charging-station";
 
 export class RouteGraphics {
 
-  static DISTANCE_METRES: number = 250000; // 250km
+  //static DISTANCE_METRES: number = 250000; // 250km
+  static DISTANCE_METRES: number = 100000; // 100km
 
   private scene: Phaser.Scene;
   private margin: number = 50;
@@ -12,6 +14,8 @@ export class RouteGraphics {
   private roadLengthPixels: number;
   private x: number;
   private distanceToPixelsFactor: number;
+  private vehicleSprites: VehicleSprite[] = [];
+  private chargingStationSprites: ChargingStationSprite[] = [];
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -35,11 +39,33 @@ export class RouteGraphics {
     this.distanceToPixelsFactor = RouteGraphics.DISTANCE_METRES / this.roadLengthPixels;
   }
 
-  update(vehicleSprites: VehicleSprite[]): void {
-    vehicleSprites.forEach(sprite => {
+  addVehicle(vehicleSprite: VehicleSprite) {
+    this.vehicleSprites.push(vehicleSprite);
+  }
+
+  removeVehicle(vehicle: Vehicle) {
+    const toRemove = this.findVehicleSprite(vehicle);
+    toRemove.sprite().destroy(false);
+    this.vehicleSprites = this.vehicleSprites.filter(v => v !== toRemove);
+  }
+
+  findVehicleSprite(vehicle: Vehicle): VehicleSprite {
+    return this.vehicleSprites.find(sprite => {
+      return sprite.getVehicle() === vehicle;
+    });
+  }
+
+  findChargingStationSprite(chargingStation: ChargingStation): ChargingStationSprite {
+    return this.chargingStationSprites.find(sprite => {
+      return sprite.chargingStation === chargingStation;
+    })
+  }
+
+  update(): void {
+    this.vehicleSprites.forEach(sprite => {
       let vehicle = sprite.getVehicle();
       if (vehicle.status === Status.MOVING) {
-        let distanceInMetres = sprite.distance() + sprite.getVehicle().startDistance;
+        let distanceInMetres = vehicle.totalDistance;
         let y = distanceInMetres / this.distanceToPixelsFactor;
         sprite.sprite().x = this.x;
         sprite.sprite().y = y + this.margin;
@@ -48,23 +74,24 @@ export class RouteGraphics {
   }
 
   renderChargingStation(csSprite: ChargingStationSprite): void {
+    this.chargingStationSprites.push(csSprite);
     const locationInMeters = csSprite.chargingStation.locationInMeters;
     let y = locationInMeters / this.distanceToPixelsFactor;
     csSprite.circle.x = this.x - 25;
     csSprite.circle.y = y + this.margin;
   }
 
-  renderChargingVehicle(vehicleSprite: VehicleSprite, chargingStationSprite: ChargingStationSprite): void {
-    let chargingStation = chargingStationSprite.chargingStation;
-    vehicleSprite.getVehicle().distance = chargingStation.locationInMeters; // debatable
+  renderChargingVehicle(vehicle: Vehicle, chargingStation: ChargingStation): void {
+    const vehicleSprite = this.findVehicleSprite(vehicle);
+    const chargingStationSprite = this.findChargingStationSprite(chargingStation);
     vehicleSprite.sprite().y = chargingStationSprite.circle.y;
     vehicleSprite.sprite().x = this.x - 40 - (chargingStation.vehicles.length * 20);
   }
 
-  renderMovingVehicle(vSprite: VehicleSprite) {
-    let distanceInMetres = vSprite.distance() + vSprite.getVehicle().startDistance;
-    let y = distanceInMetres / this.distanceToPixelsFactor;
-    vSprite.sprite().y = y;
-    vSprite.sprite().x = this.x;
+  renderMovingVehicle(vehicle: Vehicle) {
+    const sprite = this.findVehicleSprite(vehicle);
+    let distanceInMetres = vehicle.totalDistance;
+    sprite.sprite().y = distanceInMetres / this.distanceToPixelsFactor;
+    sprite.sprite().x = this.x;
   }
 }

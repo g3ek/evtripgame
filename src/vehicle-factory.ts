@@ -2,7 +2,8 @@ import {Status, Vehicle} from "./vehicle";
 
 export class VehicleFactory {
 
-  private static readonly CAPACITIES: number[] = [20000, 41000, 64000, 75000, 100000];
+  //private static readonly CAPACITIES: number[] = [20000, 41000, 64000, 75000, 100000];
+  private static readonly CAPACITIES: number[] = [20000];
 
   create(): Vehicle {
     const kph = Phaser.Math.Between(90, 120);

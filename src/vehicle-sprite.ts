@@ -34,10 +34,6 @@ export class VehicleSprite {
 
   }
 
-  distance(): number {
-    return this.vehicle.distance;
-  }
-
   sprite(): Graphics {
     return this.circle;
   }

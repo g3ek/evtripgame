@@ -1,6 +1,4 @@
-import {VehicleSprite} from "./vehicle-sprite";
 import {RouteGraphics} from "./route-graphics";
-import {ChargingStationSprite} from "./charging-station-sprite";
 import {Status, Vehicle} from "./vehicle";
 import {ChargingStation} from "./charging-station";
 
@@ -8,39 +6,38 @@ export class Controller {
 
   static readonly TIMEFACTOR: number = 20;
 
-  private _vehicles: VehicleSprite[] = [];
-  private chargingStations: ChargingStationSprite[] = [];
+  private _vehicles: Vehicle[] = [];
+  private chargingStations: ChargingStation[] = [];
   private routeGraphics: RouteGraphics;
 
   constructor(routeGraphics: RouteGraphics) {
     this.routeGraphics = routeGraphics;
   }
 
-  addVehicle(vehicleSprite: VehicleSprite): void {
-    this._vehicles.push(vehicleSprite);
+  addVehicle(vehicle: Vehicle): void {
+    this._vehicles.push(vehicle);
   }
 
-  addChargingStation(csSprite: ChargingStationSprite) {
-    this.chargingStations.push(csSprite);
+  addChargingStation(chargingStation: ChargingStation) {
+    this.chargingStations.push(chargingStation);
   }
 
   update(delta: number): void {
-    this._vehicles.forEach(sprite => {
-      this.updateVehicle(sprite);
+    this._vehicles.forEach(vehicle => {
+      this.updateVehicle(vehicle);
     });
     this.chargingStations.forEach(cs => {
-      if (cs.chargingStation.vehicles.length > 0) {
-        this.chargeVehicles(cs.chargingStation);
+      if (cs.vehicles.length > 0) {
+        this.chargeVehicles(cs);
       }
     })
   }
 
-  get vehicles(): VehicleSprite[] {
+  get vehicles(): Vehicle[] {
     return this._vehicles;
   }
 
-  private updateVehicle(vehicleSprite: VehicleSprite) {
-    const vehicle = vehicleSprite.getVehicle();
+  private updateVehicle(vehicle: Vehicle) {
     if (vehicle.status === Status.MOVING) {
       const delta = (Date.now() - vehicle.startTime) * Controller.TIMEFACTOR;
       const distance = (delta / 1000) * vehicle.mpsSpeed;
@@ -48,38 +45,37 @@ export class Controller {
       const wattHoursPerMeter = (vehicle.consumption / 1000) * distance;
       let soc = vehicle.startSOC - wattHoursPerMeter;
       vehicle.soc = soc;
-      const needToCharge = this.isChargingNecessaryHandler(vehicleSprite, distance);
+      const needToCharge = this.isChargingNecessaryHandler(vehicle, distance);
       if (!needToCharge) {
         vehicle.distance = distance;
         if (vehicle.totalDistance > RouteGraphics.DISTANCE_METRES) {
-          vehicleSprite.sprite().destroy(false);
-          this._vehicles = this._vehicles.filter(v => v !== vehicleSprite);
+          this.routeGraphics.removeVehicle(vehicle);
+          this._vehicles = this._vehicles.filter(v => v !== vehicle);
         }
       }
     }
   }
 
-  private isChargingNecessaryHandler(vehicleSprite: VehicleSprite, distance: number): boolean {
-    const vehicle = vehicleSprite.getVehicle();
+  private isChargingNecessaryHandler(vehicle: Vehicle, distance: number): boolean {
     const oldDistance = vehicle.totalDistance; // previously attained distance
     const newDistance = vehicle.startDistance + distance;
-    this.chargingStations.forEach(csSprite => {
-      let chargingStation = csSprite.chargingStation;
+    const nearestChargingStations = this.chargingStations.filter(chargingStation => {
       let csLocation = chargingStation.locationInMeters;
-      let inVicinity = csLocation > oldDistance && csLocation < newDistance;
-      if (inVicinity) {
-        let doNeedToChargeHere = this.doINeedToChargeHere(vehicle, chargingStation, newDistance);
-        if (doNeedToChargeHere) {
-          vehicle.status = Status.CHARGING;
-          vehicle.startDistance = newDistance; // make the distance AFTER the cs
-          vehicle.distance = 0;
-          this.afterChargingOrMoving(vehicle);
-          chargingStation.add(vehicle);
-          this.routeGraphics.renderChargingVehicle(vehicleSprite, csSprite);
-          return true;
-        }
-      }
+      return csLocation > oldDistance && csLocation < newDistance;
     });
+    if (nearestChargingStations.length > 0) {
+      const chargingStation = nearestChargingStations[0];
+      let doNeedToChargeHere = this.doINeedToChargeHere(vehicle, chargingStation, newDistance);
+      if (doNeedToChargeHere) {
+        vehicle.status = Status.CHARGING;
+        vehicle.startDistance = chargingStation.locationInMeters;
+        vehicle.distance = 0;
+        this.afterChargingOrMoving(vehicle);
+        chargingStation.add(vehicle);
+        this.routeGraphics.renderChargingVehicle(vehicle, chargingStation);
+        return true;
+      }
+    }
     return false;
   }
 
@@ -102,39 +98,40 @@ export class Controller {
 
   private findNextChargingStations(chargingStation: ChargingStation): ChargingStation[] {
     return this.chargingStations.filter(cs => {
-      return cs.chargingStation.locationInMeters > chargingStation.locationInMeters;
+      return cs.locationInMeters > chargingStation.locationInMeters;
     }).map(cs => {
-      return cs.chargingStation;
+      return cs;
     });
   }
 
   private chargeVehicles(chargingStation: ChargingStation) {
-    chargingStation.vehicles.forEach(vehicle => {
+    for (let i = 0; i < chargingStation.vehicles.length; i++) {
+      const vehicle = chargingStation.vehicles[i];
       const chargingTime = (Date.now() - vehicle.startTime) * Controller.TIMEFACTOR;
       // 3600000 to convert hour to ms
       const energy = (chargingStation.power / 3600000) * chargingTime;
       vehicle.soc = vehicle.startSOC + energy;
-      let doINeedToContinueChargingHere = this.doINeedToChargeHere(vehicle, chargingStation, vehicle.distance);
-      if (!doINeedToContinueChargingHere) {
-        vehicle.status = Status.MOVING;
-        this.afterChargingOrMoving(vehicle);
-        chargingStation.remove(vehicle);
-        const vSprite = this.findVehicleSprite(vehicle);
-        this.routeGraphics.renderMovingVehicle(vSprite);
+      if (vehicle.soc >= vehicle.capacity) {
+        vehicle.soc = vehicle.capacity;
+        this.stopCharging(vehicle, chargingStation);
       }
-    });
+      let doINeedToContinueChargingHere = this.doINeedToChargeHere(vehicle, chargingStation, vehicle.totalDistance);
+      if (!doINeedToContinueChargingHere) {
+        this.stopCharging(vehicle, chargingStation);
+      }
+    }
+  }
+
+  private stopCharging(vehicle: Vehicle, chargingStation: ChargingStation): void {
+    vehicle.status = Status.MOVING;
+    this.afterChargingOrMoving(vehicle);
+    chargingStation.remove(vehicle);
+    this.routeGraphics.renderMovingVehicle(vehicle);
   }
 
   private afterChargingOrMoving(vehicle: Vehicle): void {
     vehicle.totalTime += (Date.now() - vehicle.startTime); // keep a total
     vehicle.startTime = Date.now(); // start charging or moving time
     vehicle.startSOC = vehicle.soc;
-  }
-
-  private findVehicleSprite(vehicle: Vehicle): VehicleSprite {
-    let vehicleSprites = this.vehicles.filter(vSprite => {
-      return vSprite.getVehicle() === vehicle;
-    });
-    return vehicleSprites[0];
   }
 }

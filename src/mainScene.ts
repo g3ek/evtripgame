@@ -69,11 +69,14 @@ export class MainScene extends Phaser.Scene {
           const socPercent = Math.round((v.soc / factor)*100) / 100;
           const capacity = v.capacity / 1000;
           const consumption = Math.round(v.consumption);
+          let range = (vehicle.soc / (vehicle.consumption/1000)) / 1000;
+          range = Math.round(range*100) / 100;
           socText.setText(
             "Distance: " + kms + " km\n" +
             "SoC: " + socPercent + " %\n" +
             "Wh/km (~): " + consumption + "\n" +
-            "Capacity: " + capacity + " kWh"
+            "Capacity: " + capacity + " kWh" + "\n" +
+            "Range: " + range + " km"
           );
         });
       }
@@ -86,14 +89,15 @@ export class MainScene extends Phaser.Scene {
   update(time: number, delta: number) {
     super.update(time, delta);
     this.controller.update(delta);
-    this.routeGraphics.update(this.controller.vehicles);
+    this.routeGraphics.update();
   }
 
   private addVehicle(): void {
     let vehicle = this.vehicleFactory.create();
     let vehicleSprite = new VehicleSprite(vehicle, this.eventDispatcher);
     vehicleSprite.create(this);
-    this.controller.addVehicle(vehicleSprite);
+    this.controller.addVehicle(vehicle);
+    this.routeGraphics.addVehicle(vehicleSprite);
   }
 
   private addChargingStation(power: number, distance: number): void {
@@ -102,7 +106,7 @@ export class MainScene extends Phaser.Scene {
     chargingStation.power = power;
     let csSprite = new ChargingStationSprite(chargingStation);
     csSprite.create(this);
-    this.controller.addChargingStation(csSprite);
+    this.controller.addChargingStation(chargingStation);
     this.routeGraphics.renderChargingStation(csSprite);
   }
 }
