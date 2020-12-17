@@ -17,7 +17,7 @@ export class Vehicle {
   private _moving: boolean = true;
   private _mpsSpeed: number;
   private _status: Status;
-  private _startTime: number = Date.now();
+  private _startTime: number = 0;
   private _startSOC: number;
   private _soc: number;
   private _capacity: number;

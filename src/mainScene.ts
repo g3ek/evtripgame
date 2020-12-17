@@ -11,13 +11,14 @@ import {ChargingStationFactory} from "./charging-station-factory";
 import {ChargingStation} from "./charging-station";
 import {ChargingStationSprite} from "./charging-station-sprite";
 import {CommonStyle} from "./common-style";
+import {Slider} from "./slider";
 
 export class MainScene extends Phaser.Scene {
 
   private readonly routeGraphics = new RouteGraphics(this);
   private eventDispatcher: EvtripEventDispatcher = new EvtripEventDispatcher();
-  private controller: Controller = new Controller(this.routeGraphics);
-  private vehicleFactory: VehicleFactory = new VehicleFactory();
+  private controller: Controller;
+  private vehicleFactory: VehicleFactory;
   private chargingStationFactory: ChargingStationFactory = new ChargingStationFactory();
 
   constructor(config: string | Phaser.Types.Scenes.SettingsConfig) {
@@ -31,6 +32,13 @@ export class MainScene extends Phaser.Scene {
   create(): void {
     let clock = new Clock(this);
     clock.create();
+    this.vehicleFactory = new VehicleFactory(clock);
+    this.controller = new Controller(this.routeGraphics, clock);
+    let slider = new Slider(this, 30, 100, 40);
+    slider.setAction(() => {
+      Controller.TIMEFACTOR = slider.value;
+    });
+
     let chargingStationSelection = new ChargingStationSelection("chargingstationselection", this.eventDispatcher);
     chargingStationSelection.create(this);
     this.routeGraphics.render(250);

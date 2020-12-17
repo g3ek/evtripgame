@@ -1,17 +1,20 @@
 import {RouteGraphics} from "./route-graphics";
 import {Status, Vehicle} from "./vehicle";
 import {ChargingStation} from "./charging-station";
+import {Clock} from "./clock";
 
 export class Controller {
 
-  static readonly TIMEFACTOR: number = 20;
+  static TIMEFACTOR: number = 20;
 
   private _vehicles: Vehicle[] = [];
   private chargingStations: ChargingStation[] = [];
   private routeGraphics: RouteGraphics;
+  private clock: Clock;
 
-  constructor(routeGraphics: RouteGraphics) {
+  constructor(routeGraphics: RouteGraphics, clock: Clock) {
     this.routeGraphics = routeGraphics;
+    this.clock = clock;
   }
 
   addVehicle(vehicle: Vehicle): void {
@@ -39,7 +42,7 @@ export class Controller {
 
   private updateVehicle(vehicle: Vehicle) {
     if (vehicle.status === Status.MOVING) {
-      const delta = (Date.now() - vehicle.startTime) * Controller.TIMEFACTOR;
+      const delta = (this.clock.time - vehicle.startTime);
       const distance = (delta / 1000) * vehicle.mpsSpeed;
       // /1000 b/c consumtion is per km
       const wattHoursPerMeter = (vehicle.consumption / 1000) * distance;
@@ -107,7 +110,7 @@ export class Controller {
   private chargeVehicles(chargingStation: ChargingStation) {
     for (let i = 0; i < chargingStation.vehicles.length; i++) {
       const vehicle = chargingStation.vehicles[i];
-      const chargingTime = (Date.now() - vehicle.startTime) * Controller.TIMEFACTOR;
+      const chargingTime = (this.clock.time - vehicle.startTime);
       // 3600000 to convert hour to ms
       const energy = (chargingStation.power / 3600000) * chargingTime;
       vehicle.soc = vehicle.startSOC + energy;
@@ -130,8 +133,8 @@ export class Controller {
   }
 
   private afterChargingOrMoving(vehicle: Vehicle): void {
-    vehicle.totalTime += (Date.now() - vehicle.startTime); // keep a total
-    vehicle.startTime = Date.now(); // start charging or moving time
+    vehicle.totalTime += (this.clock.time - vehicle.startTime); // keep a total
+    vehicle.startTime = this.clock.time; // start charging or moving time
     vehicle.startSOC = vehicle.soc;
   }
 }

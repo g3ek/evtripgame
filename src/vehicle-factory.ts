@@ -1,9 +1,15 @@
 import {Status, Vehicle} from "./vehicle";
+import {Clock} from "./clock";
 
 export class VehicleFactory {
 
   //private static readonly CAPACITIES: number[] = [20000, 41000, 64000, 75000, 100000];
   private static readonly CAPACITIES: number[] = [20000];
+  private clock: Clock;
+
+  constructor(clock: Clock) {
+    this.clock = clock;
+  }
 
   create(): Vehicle {
     const kph = Phaser.Math.Between(90, 120);
@@ -25,6 +31,7 @@ export class VehicleFactory {
     vehicle.status = status;
     vehicle.mpsSpeed = mpsSpeed;
     vehicle.directionup = directionup;
+    vehicle.startTime = this.clock.time;
     return vehicle;
   }
 }
