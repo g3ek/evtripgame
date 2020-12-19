@@ -1,5 +1,4 @@
 import {Vehicle} from "./vehicle";
-import {Subscription} from "rxjs";
 import {EvtripEventDispatcher} from "./evtrip-event-dispatcher";
 import {VehicleFactory} from "./vehicle-factory";
 import {Controller} from "./controller";
@@ -10,8 +9,8 @@ import {ChargingStationSelection} from "./charging-station-selection";
 import {ChargingStationFactory} from "./charging-station-factory";
 import {ChargingStation} from "./charging-station";
 import {ChargingStationSprite} from "./charging-station-sprite";
-import {CommonStyle} from "./common-style";
 import {Slider} from "./slider";
+import {VehicleInfo} from "./vehicle-info";
 
 export class MainScene extends Phaser.Scene {
 
@@ -20,6 +19,7 @@ export class MainScene extends Phaser.Scene {
   private controller: Controller;
   private vehicleFactory: VehicleFactory;
   private chargingStationFactory: ChargingStationFactory = new ChargingStationFactory();
+  private clock: Clock;
 
   constructor(config: string | Phaser.Types.Scenes.SettingsConfig) {
     super(config);
@@ -32,65 +32,28 @@ export class MainScene extends Phaser.Scene {
   create(): void {
     let clock = new Clock(this);
     clock.create();
-    this.vehicleFactory = new VehicleFactory(clock);
+    this.vehicleFactory = new VehicleFactory(clock, this, this.eventDispatcher);
     this.controller = new Controller(this.routeGraphics, clock);
     let slider = new Slider(this, 30, 100, 40);
     slider.setAction(() => {
-      Controller.TIMEFACTOR = slider.value;
+      clock.timeScale = slider.value;
     });
 
     let chargingStationSelection = new ChargingStationSelection("chargingstationselection", this.eventDispatcher);
     chargingStationSelection.create(this);
     this.routeGraphics.render(250);
-    this.addVehicle(); // begin immediately
-    this.time.addEvent({
-      delay: Phaser.Math.Between(5000 * 8, 10000 * 8),
-      loop: true,
-      startAt: 5000,
-      callback: () => {
-        let vehicle = this.addVehicle();
-      }
-    });
-
-    let socText = this.add.text(30, 750, "Soc: ", CommonStyle.NORMAL_STYLE);
-    socText.setVisible(false);
-
-    let subscription: Subscription = null;
-    let vehicle: Vehicle = null;
-    this.eventDispatcher.on("showvehiclestats", (thevehicle: Vehicle) => {
-
-      if (subscription !== null) {
-        subscription.unsubscribe();
-      }
-
-      if (vehicle !== null && vehicle === thevehicle) {
-        socText.setVisible(false);
-        vehicle = null;
-        subscription = null;
-      } else {
-        socText.setVisible(true);
-        vehicle = thevehicle;
-        subscription = thevehicle.observable.subscribe(v => {
-          let kms = v.distance / 1000;
-          kms = (Math.round(kms*100)) / 100;
-          const factor = v.capacity / 100;
-          const socPercent = Math.round((v.soc / factor)*100) / 100;
-          const capacity = v.capacity / 1000;
-          const consumption = Math.round(v.consumption);
-          let range = (vehicle.soc / (vehicle.consumption/1000)) / 1000;
-          range = Math.round(range*100) / 100;
-          socText.setText(
-            "Distance: " + kms + " km\n" +
-            "SoC: " + socPercent + " %\n" +
-            "Wh/km (~): " + consumption + "\n" +
-            "Capacity: " + capacity + " kWh" + "\n" +
-            "Range: " + range + " km"
-          );
-        });
-      }
+    let vehicle = this.vehicleFactory.create();
+    this.addVehicle(vehicle); // begin immediately
+    let vehicleInfo = new VehicleInfo();
+    vehicleInfo.create(this);
+    this.eventDispatcher.on("showvehiclestats", (vehicle: Vehicle) => {
+      vehicleInfo.show(vehicle);
     });
     this.eventDispatcher.on("addchargingstation", (power: number, distance: number) => {
       this.addChargingStation(power, distance);
+    });
+    this.eventDispatcher.on("newvehicle", (vehicle: Vehicle) => {
+      this.addVehicle(vehicle);
     });
   }
 
@@ -100,8 +63,7 @@ export class MainScene extends Phaser.Scene {
     this.routeGraphics.update();
   }
 
-  private addVehicle(): void {
-    let vehicle = this.vehicleFactory.create();
+  private addVehicle(vehicle): void {
     let vehicleSprite = new VehicleSprite(vehicle, this.eventDispatcher);
     vehicleSprite.create(this);
     this.controller.addVehicle(vehicle);

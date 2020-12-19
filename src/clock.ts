@@ -1,5 +1,4 @@
 import {Scene} from "phaser";
-import {Controller} from "./controller";
 import {CommonStyle} from "./common-style";
 import Text = Phaser.GameObjects.Text;
 
@@ -10,6 +9,7 @@ export class Clock {
   private previousRealTime: number = 0;
   private clockText: Text;
   private date: Date = new Date();
+  private _timeScale: number = 1;
 
   constructor(scene: Scene) {
     this.scene = scene;
@@ -30,7 +30,7 @@ export class Clock {
     let now = this.scene.time.now;
     let delta = (now - this.previousRealTime);
     this.previousRealTime = now;
-    this._time = this._time + (delta * Controller.TIMEFACTOR);
+    this._time = this._time + (delta * this._timeScale);
     this.date.setTime(this._time);
     // todo why do I have to -1 on the hour?
     this.clockText.setText("Time: "+(this.date.getHours()-1)+":"+this.date.getMinutes()+":"+this.date.getSeconds());
@@ -38,5 +38,13 @@ export class Clock {
 
   get time(): number {
     return this._time;
+  }
+
+  get timeScale(): number {
+    return this._timeScale;
+  }
+
+  set timeScale(value: number) {
+    this._timeScale = value;
   }
 }

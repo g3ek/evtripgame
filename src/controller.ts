@@ -5,8 +5,6 @@ import {Clock} from "./clock";
 
 export class Controller {
 
-  static TIMEFACTOR: number = 20;
-
   private _vehicles: Vehicle[] = [];
   private chargingStations: ChargingStation[] = [];
   private routeGraphics: RouteGraphics;

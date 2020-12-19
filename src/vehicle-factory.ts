@@ -1,14 +1,34 @@
 import {Status, Vehicle} from "./vehicle";
 import {Clock} from "./clock";
+import {Scene} from "phaser";
+import {EvtripEventDispatcher} from "./evtrip-event-dispatcher";
 
 export class VehicleFactory {
 
   //private static readonly CAPACITIES: number[] = [20000, 41000, 64000, 75000, 100000];
   private static readonly CAPACITIES: number[] = [20000];
   private clock: Clock;
+  private eventDispatcher: EvtripEventDispatcher;
+  private newCarTimerEvent: Phaser.Time.TimerEvent;
 
-  constructor(clock: Clock) {
+  constructor(clock: Clock, scene: Phaser.Scene, eventDispatcher: EvtripEventDispatcher) {
     this.clock = clock;
+    this.eventDispatcher = eventDispatcher;
+    this.createNewCarTimerEvent(scene);
+  }
+
+  private createNewCarTimerEvent(scene: Scene) {
+    this.newCarTimerEvent = scene.time.addEvent({
+      delay: Phaser.Math.Between(5000 * 8, 10000 * 8),
+      loop: true,
+      startAt: 5000,
+      callback: () => {
+        let vehicle = this.create();
+        this.eventDispatcher.emit('newvehicle', vehicle);
+      }
+    });
+
+
   }
 
   create(): Vehicle {

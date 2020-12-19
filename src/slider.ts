@@ -1,18 +1,19 @@
 import Image = Phaser.GameObjects.Image;
 import Graphics = Phaser.GameObjects.Graphics;
 import Pointer = Phaser.Input.Pointer;
-import {Controller} from "./controller";
+import Text = Phaser.GameObjects.Text;
+import {CommonStyle} from "./common-style";
 
 export class Slider {
   protected scene: Phaser.Scene;
   protected bar: Graphics;
   private button: Image;
-  private action: () => void;
-  private _value: number = Controller.TIMEFACTOR;
+  private _value: number = 1;
   private x: number;
   private size: number = 100;
   private range: number;
   private factor: number;
+  private valueText: Text;
 
   constructor(scene: Phaser.Scene, x: number, y: number, range: number) {
     this.scene = scene;
@@ -24,7 +25,7 @@ export class Slider {
 
   create(x: number, y: number): void {
     this.createBar(x, y);
-
+    this.valueText = this.scene.add.text(x+115, y-10, "x"+this.value, CommonStyle.NORMAL_STYLE);
     let buttonGfx = this.scene.add.graphics({
       x: x+(this.size/2),
       y: y,
@@ -36,7 +37,7 @@ export class Slider {
     buttonGfx.generateTexture('sliderbuttontexture', 20, 40);
     buttonGfx.destroy();
 
-    this.button = this.scene.add.image(x+(this.size/2), y+5, 'sliderbuttontexture');
+    this.button = this.scene.add.image(x+5, y+5, 'sliderbuttontexture');
     this.button.setInteractive({
       draggable: true
     });
@@ -47,9 +48,11 @@ export class Slider {
       if (pointer.x >= this.x && pointer.x <= (this.x+this.size)) {
         this.button.setX(pointer.x);
         let real = (pointer.x-this.x) / this.factor;
-        this._value = Math.floor(real);
+        this._value = Math.floor(real)+1; // todo smelly
+        this.valueText.setText("x"+this._value);
       }
     });
+
   }
 
   protected createBar(x: number, y: number): void {
