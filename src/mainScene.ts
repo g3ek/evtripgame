@@ -11,6 +11,7 @@ import {ChargingStation} from "./charging-station";
 import {ChargingStationSprite} from "./charging-station-sprite";
 import {Slider} from "./slider";
 import {VehicleInfo} from "./vehicle-info";
+import {GameButton} from "./game-button";
 
 export class MainScene extends Phaser.Scene {
 
@@ -19,7 +20,6 @@ export class MainScene extends Phaser.Scene {
   private controller: Controller;
   private vehicleFactory: VehicleFactory;
   private chargingStationFactory: ChargingStationFactory = new ChargingStationFactory();
-  private clock: Clock;
 
   constructor(config: string | Phaser.Types.Scenes.SettingsConfig) {
     super(config);
@@ -37,6 +37,7 @@ export class MainScene extends Phaser.Scene {
     let slider = new Slider(this, 30, 100, 40);
     slider.setAction(() => {
       clock.timeScale = slider.value;
+      this.vehicleFactory.updateNewCarTimerEvent(slider.value);
     });
 
     let chargingStationSelection = new ChargingStationSelection("chargingstationselection", this.eventDispatcher);
@@ -46,6 +47,16 @@ export class MainScene extends Phaser.Scene {
     this.addVehicle(vehicle); // begin immediately
     let vehicleInfo = new VehicleInfo();
     vehicleInfo.create(this);
+    let pauseButton = new GameButton(this, 30, 140, "Pause");
+    pauseButton.setAction(() => {
+      this.time.paused = !this.time.paused;
+      if (this.time.paused) {
+        pauseButton.setText("Start");
+        clock.pause();
+      } else {
+        pauseButton.setText("Pause");
+      }
+    });
     this.eventDispatcher.on("showvehiclestats", (vehicle: Vehicle) => {
       vehicleInfo.show(vehicle);
     });
@@ -79,4 +90,5 @@ export class MainScene extends Phaser.Scene {
     this.controller.addChargingStation(chargingStation);
     this.routeGraphics.renderChargingStation(csSprite);
   }
+
 }

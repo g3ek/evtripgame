@@ -17,18 +17,19 @@ export class VehicleFactory {
     this.createNewCarTimerEvent(scene);
   }
 
+  updateNewCarTimerEvent(timeScale: number) {
+    this.newCarTimerEvent.timeScale = timeScale;
+  }
+
   private createNewCarTimerEvent(scene: Scene) {
     this.newCarTimerEvent = scene.time.addEvent({
-      delay: Phaser.Math.Between(5000 * 8, 10000 * 8),
+      delay: Phaser.Math.Between(120000, 360000),
       loop: true,
-      startAt: 5000,
       callback: () => {
         let vehicle = this.create();
         this.eventDispatcher.emit('newvehicle', vehicle);
       }
     });
-
-
   }
 
   create(): Vehicle {

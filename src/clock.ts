@@ -10,6 +10,8 @@ export class Clock {
   private clockText: Text;
   private date: Date = new Date();
   private _timeScale: number = 1;
+  private pauseStart: number = 0;
+  private pauseTotal: number = 0;
 
   constructor(scene: Scene) {
     this.scene = scene;
@@ -27,10 +29,15 @@ export class Clock {
   }
 
   update(): void {
-    let now = this.scene.time.now;
+    if (this.pauseStart != 0) {
+      this.pauseTotal += (this.scene.time.now - this.pauseStart);
+      this.pauseStart = 0;
+      this.previousRealTime = (this.scene.time.now - this.pauseTotal);
+    }
+    let now = this.scene.time.now - this.pauseTotal;
     let delta = (now - this.previousRealTime);
     this.previousRealTime = now;
-    this._time = this._time + (delta * this._timeScale);
+    this._time += (delta * this._timeScale);
     this.date.setTime(this._time);
     // todo why do I have to -1 on the hour?
     this.clockText.setText("Time: "+(this.date.getHours()-1)+":"+this.date.getMinutes()+":"+this.date.getSeconds());
@@ -46,5 +53,9 @@ export class Clock {
 
   set timeScale(value: number) {
     this._timeScale = value;
+  }
+
+  pause() {
+    this.pauseStart = this.scene.time.now;
   }
 }

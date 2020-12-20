@@ -2,14 +2,16 @@ import {VehicleSprite} from "./vehicle-sprite";
 import {ChargingStationSprite} from "./charging-station-sprite";
 import {Status, Vehicle} from "./vehicle";
 import {ChargingStation} from "./charging-station";
+import {CommonStyle} from "./common-style";
 
 export class RouteGraphics {
 
-  //static DISTANCE_METRES: number = 250000; // 250km
-  static DISTANCE_METRES: number = 100000; // 100km
+  static DISTANCE_METRES: number = 250000; // 250km
+  //static DISTANCE_METRES: number = 100000; // 100km
 
   private scene: Phaser.Scene;
   private margin: number = 50;
+  private marginX: number = 60;
   private distance: number;
   private roadLengthPixels: number;
   private x: number;
@@ -34,9 +36,20 @@ export class RouteGraphics {
       }
     });
     this.roadLengthPixels = (<number>height) - (this.margin * 2);
-    this.x = width - this.margin;
+    this.x = width - this.marginX;
     roadGraphics.fillRect(this.x, this.margin, 10, this.roadLengthPixels);
     this.distanceToPixelsFactor = RouteGraphics.DISTANCE_METRES / this.roadLengthPixels;
+    this.renderDistanceMarkers();
+  }
+
+  renderDistanceMarkers() {
+    let km25 = RouteGraphics.DISTANCE_METRES / 25000;
+    for(let i=0; i <= km25; i++) {
+      let y = (25000 * i) / this.distanceToPixelsFactor;
+      this.scene.add.text(this.x+15, y+this.margin, ""+(25*i)+"km", CommonStyle.NORMAL_STYLE)
+        .setScale(0.5)
+        .setOrigin(0, 0.5);
+    }
   }
 
   addVehicle(vehicleSprite: VehicleSprite) {

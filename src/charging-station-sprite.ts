@@ -21,6 +21,7 @@ export class ChargingStationSprite {
       }
     });
     this._circle.fillCircle(0, 0, radius);
+    this._circle.displayOriginY = 0.5;
     this._circle.setInteractive(new Phaser.Geom.Circle(0, 0, radius), Phaser.Geom.Circle.Contains);
   }
 
