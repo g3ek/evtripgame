@@ -5,20 +5,44 @@ export class ChargingStation {
   private _power: number;
   private _locationInMeters: number;
   private _vehicles: Vehicle[] = [];
+  private _slots: number;
+  private _waiting: Vehicle[] = [];
 
   constructor() {
   }
 
   add(vehicle: Vehicle) {
-    this._vehicles.push(vehicle);
+    let index = this._vehicles.findIndex(v => v === null);
+    this._vehicles[index] = vehicle;
   }
 
   remove(vehicle: Vehicle) {
-    this._vehicles = this._vehicles.filter(v => v !== vehicle);
+    let index = this._vehicles.findIndex(v => v === vehicle);
+    this._vehicles[index] = null;
+  }
+
+  addWaiting(vehicle: Vehicle) {
+    this._waiting.push(vehicle);
   }
 
   get vehicles(): Vehicle[] {
     return this._vehicles;
+  }
+
+  removeWaiting(vehicle: Vehicle) {
+    this._waiting = this._waiting.filter(v => v !== vehicle);
+  }
+
+  isFull(): boolean {
+    return this._vehicles.every(v => v !== null);
+  }
+
+  hasWaiting(): boolean {
+    return this._waiting.length > 0;
+  }
+
+  get waiting(): Vehicle[] {
+    return this._waiting;
   }
 
   get power(): number {
@@ -35,5 +59,17 @@ export class ChargingStation {
 
   set locationInMeters(value: number) {
     this._locationInMeters = value;
+  }
+
+  get slots(): number {
+    return this._slots;
+  }
+
+  set slots(value: number) {
+    this._vehicles = new Array(value);
+    for(let i=0; i < value; i++) {
+      this._vehicles[i] = null;
+    }
+    this._slots = value;
   }
 }

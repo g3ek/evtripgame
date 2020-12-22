@@ -60,11 +60,19 @@ export class MainScene extends Phaser.Scene {
     this.eventDispatcher.on("showvehiclestats", (vehicle: Vehicle) => {
       vehicleInfo.show(vehicle);
     });
-    this.eventDispatcher.on("addchargingstation", (power: number, distance: number) => {
-      this.addChargingStation(power, distance);
+    this.eventDispatcher.on("addchargingstation", (power: number, distance: number, slots: number) => {
+      this.addChargingStation(power, distance, slots);
     });
     this.eventDispatcher.on("newvehicle", (vehicle: Vehicle) => {
       this.addVehicle(vehicle);
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && !this.time.paused) {
+        this.time.paused = true;
+        pauseButton.setText("Start");
+        clock.pause();
+      }
     });
   }
 
@@ -81,14 +89,14 @@ export class MainScene extends Phaser.Scene {
     this.routeGraphics.addVehicle(vehicleSprite);
   }
 
-  private addChargingStation(power: number, distance: number): void {
+  private addChargingStation(power: number, distance: number, slots: number): void {
     let chargingStation = new ChargingStation();
     chargingStation.locationInMeters = distance * 1000;
     chargingStation.power = power;
+    chargingStation.slots = slots;
     let csSprite = new ChargingStationSprite(chargingStation);
     csSprite.create(this);
     this.controller.addChargingStation(chargingStation);
     this.routeGraphics.renderChargingStation(csSprite);
   }
-
 }

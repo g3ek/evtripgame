@@ -25,12 +25,13 @@ export class ChargingStationSelection {
     });
     let addButton = this.form.getChildByID("add");
     let distanceField = <HTMLInputElement>this.form.getChildByName("distance");
+    let slotsField = <HTMLInputElement>this.form.getChildByName("slots");
     let messageElement = <HTMLParagraphElement>this.form.getChildByID("message");
     addButton.addEventListener('click', () => {
       messageElement.textContent = "Add station";
       const valid: boolean = this.validate(messageElement, distanceField);
       if (valid) {
-        this.eventDispatcher.emit("addchargingstation", select.value, distanceField.value);
+        this.eventDispatcher.emit("addchargingstation", select.value, distanceField.value, slotsField.value);
       }
     });
   }

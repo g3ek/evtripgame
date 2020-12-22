@@ -62,22 +62,33 @@ export class Controller {
     const newDistance = vehicle.startDistance + distance;
     const nearestChargingStations = this.chargingStations.filter(chargingStation => {
       let csLocation = chargingStation.locationInMeters;
-      return csLocation > oldDistance && csLocation < newDistance;
+      return csLocation >= oldDistance && csLocation <= newDistance;
     });
     if (nearestChargingStations.length > 0) {
       const chargingStation = nearestChargingStations[0];
       let doNeedToChargeHere = this.doINeedToChargeHere(vehicle, chargingStation, newDistance);
-      if (doNeedToChargeHere) {
-        vehicle.status = Status.CHARGING;
-        vehicle.startDistance = chargingStation.locationInMeters;
-        vehicle.distance = 0;
-        this.afterChargingOrMoving(vehicle);
-        chargingStation.add(vehicle);
-        this.routeGraphics.renderChargingVehicle(vehicle, chargingStation);
+      if (doNeedToChargeHere && chargingStation !== vehicle.latestChargingStation) {
+        if (chargingStation.isFull()) {
+          vehicle.status = Status.WAITING;
+          chargingStation.addWaiting(vehicle);
+          this.routeGraphics.renderWaitingVehicle(vehicle, chargingStation);
+        } else {
+          this.startCharging(chargingStation, vehicle);
+          this.routeGraphics.renderChargingVehicle(vehicle, chargingStation);
+        }
+        vehicle.latestChargingStation = chargingStation;
         return true;
       }
     }
     return false;
+  }
+
+  private startCharging(chargingStation: ChargingStation, vehicle: Vehicle) {
+    vehicle.status = Status.CHARGING;
+    vehicle.startDistance = chargingStation.locationInMeters;
+    vehicle.distance = 0;
+    chargingStation.add(vehicle);
+    this.afterChargingOrMoving(vehicle);
   }
 
   private doINeedToChargeHere(vehicle: Vehicle, chargingStation: ChargingStation, newDistance: number): boolean {
@@ -108,17 +119,22 @@ export class Controller {
   private chargeVehicles(chargingStation: ChargingStation) {
     for (let i = 0; i < chargingStation.vehicles.length; i++) {
       const vehicle = chargingStation.vehicles[i];
-      const chargingTime = (this.clock.time - vehicle.startTime);
-      // 3600000 to convert hour to ms
-      const energy = (chargingStation.power / 3600000) * chargingTime;
-      vehicle.soc = vehicle.startSOC + energy;
-      if (vehicle.soc >= vehicle.capacity) {
-        vehicle.soc = vehicle.capacity;
-        this.stopCharging(vehicle, chargingStation);
-      }
-      let doINeedToContinueChargingHere = this.doINeedToChargeHere(vehicle, chargingStation, vehicle.totalDistance);
-      if (!doINeedToContinueChargingHere) {
-        this.stopCharging(vehicle, chargingStation);
+      if (vehicle !== null) {
+        const chargingTime = (this.clock.time - vehicle.startTime);
+        // 3600000 to convert hour to ms
+        const energy = (chargingStation.power / 3600000) * chargingTime;
+        vehicle.soc = vehicle.startSOC + energy;
+        if (vehicle.soc >= vehicle.capacity) {
+          vehicle.soc = vehicle.capacity;
+          this.stopCharging(vehicle, chargingStation);
+          this.activateWaitingVehicle(chargingStation);
+        } else {
+          let doINeedToContinueChargingHere = this.doINeedToChargeHere(vehicle, chargingStation, vehicle.totalDistance);
+          if (!doINeedToContinueChargingHere) {
+            this.stopCharging(vehicle, chargingStation);
+            this.activateWaitingVehicle(chargingStation);
+          }
+        }
       }
     }
   }
@@ -128,6 +144,25 @@ export class Controller {
     this.afterChargingOrMoving(vehicle);
     chargingStation.remove(vehicle);
     this.routeGraphics.renderMovingVehicle(vehicle);
+  }
+
+  private activateWaitingVehicle(chargingStation: ChargingStation): void {
+    if (chargingStation.isFull() || !chargingStation.hasWaiting()) {
+      return;
+    }
+    let vehicles = chargingStation.waiting.sort((a, b) => {
+      let result = 0;
+      if (a.startTime < b.startTime) {
+        result = -1;
+      } else if (a.startTime > b.startTime) {
+        result = 0;
+      }
+      return result;
+    });
+    const vehicle = vehicles[0];
+    chargingStation.removeWaiting(vehicle);
+    this.startCharging(chargingStation, vehicle);
+    this.routeGraphics.renderChargingVehicle(vehicle, chargingStation);
   }
 
   private afterChargingOrMoving(vehicle: Vehicle): void {

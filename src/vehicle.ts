@@ -1,12 +1,14 @@
 import {Observable, timer} from "rxjs";
 import {map} from "rxjs/operators";
+import {ChargingStation} from "./charging-station";
 
 export enum Status {
   NEW,
   MOVING,
   STOPPED,
   CHARGING,
-  DONE
+  DONE,
+  WAITING
 }
 
 
@@ -25,6 +27,9 @@ export class Vehicle {
   private _distance: number = 0;
   private _observable: Observable<Vehicle>
   private _totalTime: number = 0;
+  private _latestChargingStation: ChargingStation;
+  private _waitTime: number;
+  private _totalWaitTime: number;
 
   constructor() {
     this._observable = timer(0, 1000)
@@ -137,5 +142,29 @@ export class Vehicle {
 
   get totalDistance() {
     return this.startDistance + this.distance;
+  }
+
+  get latestChargingStation(): ChargingStation {
+    return this._latestChargingStation;
+  }
+
+  set latestChargingStation(value: ChargingStation) {
+    this._latestChargingStation = value;
+  }
+
+  get waitTime(): number {
+    return this._waitTime;
+  }
+
+  set waitTime(value: number) {
+    this._waitTime = value;
+  }
+
+  get totalWaitTime(): number {
+    return this._totalWaitTime;
+  }
+
+  set totalWaitTime(value: number) {
+    this._totalWaitTime = value;
   }
 }

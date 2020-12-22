@@ -6,8 +6,8 @@ import {CommonStyle} from "./common-style";
 
 export class RouteGraphics {
 
-  static DISTANCE_METRES: number = 250000; // 250km
-  //static DISTANCE_METRES: number = 100000; // 100km
+  //static DISTANCE_METRES: number = 250000; // 250km
+  static DISTANCE_METRES: number = 100000; // 100km
 
   private scene: Phaser.Scene;
   private margin: number = 50;
@@ -98,7 +98,8 @@ export class RouteGraphics {
     const vehicleSprite = this.findVehicleSprite(vehicle);
     const chargingStationSprite = this.findChargingStationSprite(chargingStation);
     vehicleSprite.sprite().y = chargingStationSprite.circle.y;
-    vehicleSprite.sprite().x = this.x - 40 - (chargingStation.vehicles.length * 20);
+    let index = chargingStation.vehicles.findIndex(v => v === vehicle);
+    vehicleSprite.sprite().x = this.x - 40 - (index * 40);
   }
 
   renderMovingVehicle(vehicle: Vehicle) {
@@ -106,5 +107,12 @@ export class RouteGraphics {
     let distanceInMetres = vehicle.totalDistance;
     sprite.sprite().y = distanceInMetres / this.distanceToPixelsFactor;
     sprite.sprite().x = this.x;
+  }
+
+  renderWaitingVehicle(vehicle: Vehicle, chargingStation: ChargingStation) {
+    const vehicleSprite = this.findVehicleSprite(vehicle);
+    const chargingStationSprite = this.findChargingStationSprite(chargingStation);
+    vehicleSprite.sprite().y = chargingStationSprite.circle.y;
+    vehicleSprite.sprite().x = this.x - (chargingStation.slots*40) - 10 - (chargingStation.waiting.length * 20);
   }
 }
