@@ -2,6 +2,7 @@ import {Status, Vehicle} from "./vehicle";
 import {Clock} from "./clock";
 import {Scene} from "phaser";
 import {EvtripEventDispatcher} from "./evtrip-event-dispatcher";
+import {AbstractChargingStrategy} from "./charging-strategy";
 
 export class VehicleFactory {
 
@@ -43,6 +44,9 @@ export class VehicleFactory {
     const status = Status.MOVING;
     const capacity: number = VehicleFactory.CAPACITIES[Math.floor(Math.random()*VehicleFactory.CAPACITIES.length)];
     const startSOC = Phaser.Math.Between(10000, capacity); // minimum 10kWh soc
+    const strategyIndex = Math.floor(Math.random()*AbstractChargingStrategy.strategies.length);
+    const strategy = AbstractChargingStrategy.strategies[strategyIndex];
+    const chargingStrategy = AbstractChargingStrategy.createStrategy(strategy);
 
     const vehicle = new Vehicle();
     vehicle.startSOC = startSOC;
@@ -53,6 +57,7 @@ export class VehicleFactory {
     vehicle.mpsSpeed = mpsSpeed;
     vehicle.directionup = directionup;
     vehicle.startTime = this.clock.time;
+    vehicle.chargingStrategy = chargingStrategy;
     return vehicle;
   }
 }

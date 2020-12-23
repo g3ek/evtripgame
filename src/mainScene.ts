@@ -12,6 +12,7 @@ import {ChargingStationSprite} from "./charging-station-sprite";
 import {Slider} from "./slider";
 import {VehicleInfo} from "./vehicle-info";
 import {GameButton} from "./game-button";
+import {ChargingStationStats} from "./charging-station-stats";
 
 export class MainScene extends Phaser.Scene {
 
@@ -20,6 +21,7 @@ export class MainScene extends Phaser.Scene {
   private controller: Controller;
   private vehicleFactory: VehicleFactory;
   private chargingStationFactory: ChargingStationFactory = new ChargingStationFactory();
+  private chargingStationStats: ChargingStationStats;
 
   constructor(config: string | Phaser.Types.Scenes.SettingsConfig) {
     super(config);
@@ -27,6 +29,7 @@ export class MainScene extends Phaser.Scene {
 
   preload(): void {
     this.load.html("chargingstationselection", "assets/html/chargingstationselection.html");
+    this.load.html("chargingstationstats", "assets/html/chargingstationtable.html");
   }
 
   create(): void {
@@ -42,6 +45,8 @@ export class MainScene extends Phaser.Scene {
 
     let chargingStationSelection = new ChargingStationSelection("chargingstationselection", this.eventDispatcher);
     chargingStationSelection.create(this);
+    this.chargingStationStats = new ChargingStationStats("chargingstationstats")
+    this.chargingStationStats.create(this);
     this.routeGraphics.render(250);
     let vehicle = this.vehicleFactory.create();
     this.addVehicle(vehicle); // begin immediately
@@ -66,6 +71,10 @@ export class MainScene extends Phaser.Scene {
     this.eventDispatcher.on("newvehicle", (vehicle: Vehicle) => {
       this.addVehicle(vehicle);
     });
+    this.eventDispatcher.on("showchargingstationstats", (chargingstation: ChargingStation) => {
+      this.showChargingStationStats(chargingstation);
+    });
+
 
     document.addEventListener('visibilitychange', () => {
       if (document.hidden && !this.time.paused) {
@@ -94,9 +103,13 @@ export class MainScene extends Phaser.Scene {
     chargingStation.locationInMeters = distance * 1000;
     chargingStation.power = power;
     chargingStation.slots = slots;
-    let csSprite = new ChargingStationSprite(chargingStation);
+    let csSprite = new ChargingStationSprite(chargingStation, this.eventDispatcher);
     csSprite.create(this);
     this.controller.addChargingStation(chargingStation);
     this.routeGraphics.renderChargingStation(csSprite);
+  }
+
+  private showChargingStationStats(chargingstation: ChargingStation) {
+    this.chargingStationStats.show(chargingstation);
   }
 }

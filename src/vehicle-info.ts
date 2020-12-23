@@ -14,7 +14,7 @@ export class VehicleInfo {
   }
 
   create(scene: Scene): void {
-    this.text = scene.add.text(30, 750, "Soc: ", CommonStyle.NORMAL_STYLE);
+    this.text = scene.add.text(30, 550, "Soc: ", CommonStyle.NORMAL_STYLE);
     this.text.setVisible(false);
     this.subscription = null;
   }

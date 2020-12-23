@@ -6,6 +6,7 @@ TODO:
 
 VERSION 0
 <ul>
+  <li>vehicle spawn frequency must follow timescale</li>
   <li>show road length</li>
   <li>show the number of moving vehicles</li>
   <li>show scoreboard</li>
@@ -25,9 +26,9 @@ VERSION 0
 
 VERSION +1
 <ul>
+    <li>estimated range indication</li>
   <li>charging stations management and everything else. ;-)</li>
   <li>charging power tapering after ~80%</li>
-  <li>configurable time-multiplier</li>
   <li>draw a road as a two-lane track with a striped centre line</li>
   <li>Let vehicles drive in both directions </li>
   <li>the user can end a loading session (== departing from vehicle)</li>

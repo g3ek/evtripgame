@@ -1,6 +1,7 @@
 import {Observable, timer} from "rxjs";
 import {map} from "rxjs/operators";
 import {ChargingStation} from "./charging-station";
+import {ChargingStrategy} from "./charging-strategy";
 
 export enum Status {
   NEW,
@@ -30,6 +31,7 @@ export class Vehicle {
   private _latestChargingStation: ChargingStation;
   private _waitTime: number;
   private _totalWaitTime: number;
+  private _chargingStrategy: ChargingStrategy;
 
   constructor() {
     this._observable = timer(0, 1000)
@@ -166,5 +168,13 @@ export class Vehicle {
 
   set totalWaitTime(value: number) {
     this._totalWaitTime = value;
+  }
+
+  get chargingStrategy(): ChargingStrategy {
+    return this._chargingStrategy;
+  }
+
+  set chargingStrategy(value: ChargingStrategy) {
+    this._chargingStrategy = value;
   }
 }

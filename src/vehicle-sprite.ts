@@ -25,12 +25,9 @@ export class VehicleSprite {
     this.circle.fillCircle(0, 0, radius);
     this.circle.setInteractive(new Phaser.Geom.Circle(0, 0, radius), Phaser.Geom.Circle.Contains);
 
-    let vehicleSprite = this;
-    let gfx: Graphics = this.circle;
-
     this.circle.on('pointerup', (pointer: Pointer) => {
       this.eventDispatcher.emit("showvehiclestats", this.vehicle);
-    })
+    });
 
   }
 
