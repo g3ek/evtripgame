@@ -4,7 +4,7 @@ import {Vehicle} from "./vehicle";
 
 /**
  * ALways:
- * Pick the the first charging station
+ * Pick the first charging station regardless of SoC
  * Stay until 100% soc
  */
 export class ChargingStrategyAnxiety extends AbstractChargingStrategy {

@@ -37,6 +37,10 @@ export class ChargingStation {
     return this._vehicles.every(v => v !== null);
   }
 
+  occupied(): number {
+    return this._vehicles.filter(v => v !== null).length;
+  }
+
   hasWaiting(): boolean {
     return this._waiting.length > 0;
   }

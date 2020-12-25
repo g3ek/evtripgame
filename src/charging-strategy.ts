@@ -1,7 +1,5 @@
 import {Vehicle} from "./vehicle";
 import {ChargingStation} from "./charging-station";
-import {ChargingStrategyAnxiety} from "./charging-strategy-anxiety";
-import {ChargingStrategyOpportunistic} from "./charging-strategy-opportunistic";
 
 export enum Strategy {
   OPPORTUNISTIC,
@@ -29,16 +27,5 @@ export abstract class AbstractChargingStrategy implements ChargingStrategy {
     }).map(cs => {
       return cs;
     });
-  }
-
-  static createStrategy(strategy: Strategy): ChargingStrategy {
-    switch (strategy) {
-      case Strategy.ANXIETY:
-        return new ChargingStrategyAnxiety();
-      case Strategy.OPPORTUNISTIC:
-        return new ChargingStrategyOpportunistic();
-      default:
-        throw "Illegal argument: "+strategy;
-    }
   }
 }

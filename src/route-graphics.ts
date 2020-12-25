@@ -88,31 +88,35 @@ export class RouteGraphics {
 
   renderChargingStation(csSprite: ChargingStationSprite): void {
     this.chargingStationSprites.push(csSprite);
-    const locationInMeters = csSprite.chargingStation.locationInMeters;
-    let y = locationInMeters / this.distanceToPixelsFactor;
-    csSprite.circle.x = this.x - 25;
-    csSprite.circle.y = y + this.margin;
+    csSprite.render(this.distanceToPixelsFactor, this.x, this.margin);
   }
 
   renderChargingVehicle(vehicle: Vehicle, chargingStation: ChargingStation): void {
     const vehicleSprite = this.findVehicleSprite(vehicle);
     const chargingStationSprite = this.findChargingStationSprite(chargingStation);
-    vehicleSprite.sprite().y = chargingStationSprite.circle.y;
-    let index = chargingStation.vehicles.findIndex(v => v === vehicle);
-    vehicleSprite.sprite().x = this.x - 40 - (index * 40);
+    //vehicleSprite.sprite().y = chargingStationSprite.circle.y;
+    chargingStationSprite.renderVehicle();
+    vehicleSprite.sprite().setVisible(false);
+    //let index = chargingStation.vehicles.findIndex(v => v === vehicle);
+    //vehicleSprite.sprite().x = this.x - 40 - (index * 40);
   }
 
-  renderMovingVehicle(vehicle: Vehicle) {
+  renderMovingVehicle(vehicle: Vehicle, chargingStation: ChargingStation) {
     const sprite = this.findVehicleSprite(vehicle);
     let distanceInMetres = vehicle.totalDistance;
     sprite.sprite().y = distanceInMetres / this.distanceToPixelsFactor;
     sprite.sprite().x = this.x;
+    sprite.sprite().setVisible(true);
+    const chargingStationSprite = this.findChargingStationSprite(chargingStation);
+    chargingStationSprite.renderVehicle();
   }
 
   renderWaitingVehicle(vehicle: Vehicle, chargingStation: ChargingStation) {
     const vehicleSprite = this.findVehicleSprite(vehicle);
     const chargingStationSprite = this.findChargingStationSprite(chargingStation);
-    vehicleSprite.sprite().y = chargingStationSprite.circle.y;
-    vehicleSprite.sprite().x = this.x - (chargingStation.slots*40) - 10 - (chargingStation.waiting.length * 20);
+    vehicleSprite.sprite().setVisible(false);
+    chargingStationSprite.renderVehicle();
+    //vehicleSprite.sprite().y = chargingStationSprite.circle.y;
+    //vehicleSprite.sprite().x = this.x - (chargingStation.slots*40) - 10 - (chargingStation.waiting.length * 20);
   }
 }

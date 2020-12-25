@@ -66,7 +66,8 @@ export class Controller {
     });
     if (nearestChargingStations.length > 0) {
       const chargingStation = nearestChargingStations[0];
-      let doNeedToChargeHere = this.doINeedToChargeHere(vehicle, chargingStation, newDistance);
+      const chargingStrategy = vehicle.chargingStrategy;
+      let doNeedToChargeHere = chargingStrategy.determineChargingNeed(this.chargingStations, vehicle, chargingStation, newDistance);
       if (doNeedToChargeHere && chargingStation !== vehicle.latestChargingStation) {
         if (chargingStation.isFull()) {
           vehicle.status = Status.WAITING;
@@ -91,31 +92,6 @@ export class Controller {
     this.afterChargingOrMoving(vehicle);
   }
 
-  private doINeedToChargeHere(vehicle: Vehicle, chargingStation: ChargingStation, newDistance: number): boolean {
-    let distanceRemaining = RouteGraphics.DISTANCE_METRES - newDistance;
-    const energyNeeds = (vehicle.consumption / 1000) * distanceRemaining;
-    if (vehicle.soc - energyNeeds < 0) {
-      let nextChargingStations = this.findNextChargingStations(chargingStation);
-      let stopAtNextOne = nextChargingStations.some(cs => {
-        let distanceTo = cs.locationInMeters - newDistance;
-        let energyTo = (vehicle.consumption / 1000) * distanceTo;
-        return vehicle.soc - energyTo > 0; // can I make it over there?
-      });
-      return !stopAtNextOne;
-    } else {
-      console.log("i have enough soc: "+ vehicle.soc +", energyneeds: "+energyNeeds)
-    }
-    return false; // todo: should not happen, otherwise no challenge! ;-)
-  }
-
-  private findNextChargingStations(chargingStation: ChargingStation): ChargingStation[] {
-    return this.chargingStations.filter(cs => {
-      return cs.locationInMeters > chargingStation.locationInMeters;
-    }).map(cs => {
-      return cs;
-    });
-  }
-
   private chargeVehicles(chargingStation: ChargingStation) {
     for (let i = 0; i < chargingStation.vehicles.length; i++) {
       const vehicle = chargingStation.vehicles[i];
@@ -129,7 +105,8 @@ export class Controller {
           this.stopCharging(vehicle, chargingStation);
           this.activateWaitingVehicle(chargingStation);
         } else {
-          let doINeedToContinueChargingHere = this.doINeedToChargeHere(vehicle, chargingStation, vehicle.totalDistance);
+          let chargingStrategy = vehicle.chargingStrategy;
+          let doINeedToContinueChargingHere = chargingStrategy.determineChargingNeed(this.chargingStations, vehicle, chargingStation, vehicle.totalDistance);
           if (!doINeedToContinueChargingHere) {
             this.stopCharging(vehicle, chargingStation);
             this.activateWaitingVehicle(chargingStation);
@@ -143,7 +120,7 @@ export class Controller {
     vehicle.status = Status.MOVING;
     this.afterChargingOrMoving(vehicle);
     chargingStation.remove(vehicle);
-    this.routeGraphics.renderMovingVehicle(vehicle);
+    this.routeGraphics.renderMovingVehicle(vehicle, chargingStation);
   }
 
   private activateWaitingVehicle(chargingStation: ChargingStation): void {
