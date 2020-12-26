@@ -6,6 +6,7 @@ import {ChargingStrategyFactory} from "./charging-strategy-factory";
 
 export class VehicleFactory {
 
+  private static LETTERS: string = 'abcdefghijklmnopqrstuvwxyz';
   //private static readonly CAPACITIES: number[] = [20000, 41000, 64000, 75000, 100000];
   private static readonly CAPACITIES: number[] = [20000];
   private clock: Clock;
@@ -22,17 +23,6 @@ export class VehicleFactory {
     this.newCarTimerEvent.timeScale = timeScale;
   }
 
-  private createNewCarTimerEvent(scene: Scene) {
-    this.newCarTimerEvent = scene.time.addEvent({
-      delay: Phaser.Math.Between(120000, 360000),
-      loop: true,
-      callback: () => {
-        let vehicle = this.create();
-        this.eventDispatcher.emit('newvehicle', vehicle);
-      }
-    });
-  }
-
   create(): Vehicle {
     const kph = Phaser.Math.Between(90, 120);
     const mpsSpeed = kph / 3.6; // convert kph to mps
@@ -47,6 +37,7 @@ export class VehicleFactory {
     const chargingStrategy = ChargingStrategyFactory.createRandomStrategy();
 
     const vehicle = new Vehicle();
+    vehicle.id = this.createUniqueID();
     vehicle.startSOC = startSOC;
     vehicle.soc = startSOC;
     vehicle.consumption = consumption;
@@ -57,5 +48,27 @@ export class VehicleFactory {
     vehicle.startTime = this.clock.time;
     vehicle.chargingStrategy = chargingStrategy;
     return vehicle;
+  }
+
+  private createNewCarTimerEvent(scene: Scene) {
+    this.newCarTimerEvent = scene.time.addEvent({
+      delay: Phaser.Math.Between(120000, 360000),
+      loop: true,
+      callback: () => {
+        let vehicle = this.create();
+        this.eventDispatcher.emit('newvehicle', vehicle);
+      }
+    });
+  }
+
+  private createUniqueID(): string {
+    const size = 3;
+    const lettersSize = VehicleFactory.LETTERS.length;
+    const idArray = new Array(size);
+    for(let i=0; i < size; i++) {
+      const letter = VehicleFactory.LETTERS.charAt(Math.floor(Math.random()*lettersSize));
+      idArray[i] = letter;
+    }
+    return idArray.join('');
   }
 }

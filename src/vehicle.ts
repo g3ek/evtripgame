@@ -15,6 +15,7 @@ export enum Status {
 
 export class Vehicle {
 
+  private _id: string;
   private _consumption: number;
   private _directionup: boolean;
   private _moving: boolean = true;
@@ -40,6 +41,14 @@ export class Vehicle {
           return this;
         })
       );
+  }
+
+  get id(): string {
+    return this._id;
+  }
+
+  set id(value: string) {
+    this._id = value;
   }
 
   get status(): Status {

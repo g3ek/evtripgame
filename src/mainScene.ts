@@ -13,6 +13,7 @@ import {Slider} from "./slider";
 import {VehicleInfo} from "./vehicle-info";
 import {GameButton} from "./game-button";
 import {ChargingStationStats} from "./charging-station-stats";
+import {VehicleStats} from "./vehicle-stats";
 
 export class MainScene extends Phaser.Scene {
 
@@ -30,6 +31,7 @@ export class MainScene extends Phaser.Scene {
   preload(): void {
     this.load.html("chargingstationselection", "assets/html/chargingstationselection.html");
     this.load.html("chargingstationstats", "assets/html/chargingstationtable.html");
+    this.load.html("vehiclestats", "assets/html/vehiclestable.html");
   }
 
   create(): void {
@@ -47,6 +49,8 @@ export class MainScene extends Phaser.Scene {
     chargingStationSelection.create(this);
     this.chargingStationStats = new ChargingStationStats("chargingstationstats")
     this.chargingStationStats.create(this);
+    let vehicleStats = new VehicleStats("vehiclestats");
+    vehicleStats.create(this);
     this.routeGraphics.render(250);
     let vehicle = this.vehicleFactory.create();
     this.addVehicle(vehicle); // begin immediately
@@ -63,18 +67,18 @@ export class MainScene extends Phaser.Scene {
       }
     });
     this.eventDispatcher.on("showvehiclestats", (vehicle: Vehicle) => {
-      vehicleInfo.show(vehicle);
+      vehicleStats.show(this.controller.vehicles, vehicle);
     });
     this.eventDispatcher.on("addchargingstation", (power: number, distance: number, slots: number) => {
       this.addChargingStation(power, distance, slots);
     });
     this.eventDispatcher.on("newvehicle", (vehicle: Vehicle) => {
       this.addVehicle(vehicle);
+      vehicleStats.refresh(this.controller.vehicles);
     });
     this.eventDispatcher.on("showchargingstationstats", (chargingstation: ChargingStation) => {
       this.showChargingStationStats(chargingstation);
     });
-
 
     document.addEventListener('visibilitychange', () => {
       if (document.hidden && !this.time.paused) {
