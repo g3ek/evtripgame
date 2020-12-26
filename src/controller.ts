@@ -2,6 +2,7 @@ import {RouteGraphics} from "./route-graphics";
 import {Status, Vehicle} from "./vehicle";
 import {ChargingStation} from "./charging-station";
 import {Clock} from "./clock";
+import {EvtripEventDispatcher} from "./evtrip-event-dispatcher";
 
 export class Controller {
 
@@ -9,10 +10,12 @@ export class Controller {
   private chargingStations: ChargingStation[] = [];
   private routeGraphics: RouteGraphics;
   private clock: Clock;
+  private eventDispatcher: EvtripEventDispatcher;
 
-  constructor(routeGraphics: RouteGraphics, clock: Clock) {
+  constructor(routeGraphics: RouteGraphics, clock: Clock, eventDispatcher: EvtripEventDispatcher) {
     this.routeGraphics = routeGraphics;
     this.clock = clock;
+    this.eventDispatcher = eventDispatcher;
   }
 
   addVehicle(vehicle: Vehicle): void {
@@ -77,7 +80,9 @@ export class Controller {
           this.startCharging(chargingStation, vehicle);
           this.routeGraphics.renderChargingVehicle(vehicle, chargingStation);
         }
+        this.eventDispatcher.emit('updatechargingstation', chargingStation);
         vehicle.latestChargingStation = chargingStation;
+
         return true;
       }
     }
@@ -104,12 +109,14 @@ export class Controller {
           vehicle.soc = vehicle.capacity;
           this.stopCharging(vehicle, chargingStation);
           this.activateWaitingVehicle(chargingStation);
+          this.eventDispatcher.emit('updatechargingstation', chargingStation);
         } else {
           let chargingStrategy = vehicle.chargingStrategy;
           let doINeedToContinueChargingHere = chargingStrategy.determineChargingNeed(this.chargingStations, vehicle, chargingStation, vehicle.totalDistance);
           if (!doINeedToContinueChargingHere) {
             this.stopCharging(vehicle, chargingStation);
             this.activateWaitingVehicle(chargingStation);
+            this.eventDispatcher.emit('updatechargingstation', chargingStation);
           }
         }
       }

@@ -38,7 +38,7 @@ export class ChargingStationSprite {
     this._slotsText.setOrigin(0.5, 0.5);
     this._parking = scene.add.graphics({
       fillStyle: {
-        color: 0x2e2eee,
+        color: 0x8e8eee,
         alpha: 1
       }
     });

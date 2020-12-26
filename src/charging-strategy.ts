@@ -28,4 +28,15 @@ export abstract class AbstractChargingStrategy implements ChargingStrategy {
       return cs;
     });
   }
+
+  static getLabel(strategy: Strategy): string {
+    switch (strategy) {
+      case Strategy.OPPORTUNISTIC:
+        return "Opportunistic";
+      case Strategy.ANXIETY:
+        return "Anxiety";
+      default:
+        throw "Illegal argument: "+strategy;
+    }
+  }
 }

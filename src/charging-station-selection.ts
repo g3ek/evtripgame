@@ -1,4 +1,5 @@
 import DOMElement = Phaser.GameObjects.DOMElement;
+import Graphics = Phaser.GameObjects.Graphics;
 import {Scene} from "phaser";
 import {ChargingStationFactory} from "./charging-station-factory";
 import {EvtripEventDispatcher} from "./evtrip-event-dispatcher";
@@ -9,6 +10,7 @@ export class ChargingStationSelection {
   private form: DOMElement;
   private key: string;
   private eventDispatcher: EvtripEventDispatcher;
+  private backScreen: Graphics;
 
   constructor(key: string, eventDispatcher: EvtripEventDispatcher) {
     this.key = key;
@@ -16,7 +18,21 @@ export class ChargingStationSelection {
   }
 
   create(scene: Scene): void {
-    this.form = scene.add.dom(160, 350).createFromCache(this.key);
+    this.backScreen = scene.add.graphics({
+      fillStyle: {
+        alpha: 0.9,
+        color: 0xffffff
+      }
+    });
+    this.backScreen.fillRect(200, 350, 200, 400);
+    this.backScreen.setVisible(false);
+    this.backScreen.setZ(2);
+    this.backScreen.displayOriginX = 0;
+    this.backScreen.displayOriginY = 0
+    this.form = scene.add.dom(200, 350).createFromCache(this.key);
+    this.form.setVisible(false);
+    this.form.setDepth(3)
+
     let select: HTMLSelectElement = <HTMLSelectElement>this.form.getChildByName("stations");
     //let options: HTMLOptionsCollection = this.form['options']; // todo avoid this notation
     ChargingStationFactory.CAPACITIES.forEach(power => {
@@ -48,5 +64,10 @@ export class ChargingStationSelection {
       }
     }
     return true;
+  }
+
+  show() {
+    this.form.visible = !this.form.visible;
+    //this.backScreen.setVisible(this.form.visible);
   }
 }

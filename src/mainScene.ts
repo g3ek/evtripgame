@@ -10,7 +10,6 @@ import {ChargingStationFactory} from "./charging-station-factory";
 import {ChargingStation} from "./charging-station";
 import {ChargingStationSprite} from "./charging-station-sprite";
 import {Slider} from "./slider";
-import {VehicleInfo} from "./vehicle-info";
 import {GameButton} from "./game-button";
 import {ChargingStationStats} from "./charging-station-stats";
 import {VehicleStats} from "./vehicle-stats";
@@ -38,7 +37,7 @@ export class MainScene extends Phaser.Scene {
     let clock = new Clock(this);
     clock.create();
     this.vehicleFactory = new VehicleFactory(clock, this, this.eventDispatcher);
-    this.controller = new Controller(this.routeGraphics, clock);
+    this.controller = new Controller(this.routeGraphics, clock, this.eventDispatcher);
     let slider = new Slider(this, 30, 100, 40);
     slider.setAction(() => {
       clock.timeScale = slider.value;
@@ -52,10 +51,6 @@ export class MainScene extends Phaser.Scene {
     let vehicleStats = new VehicleStats("vehiclestats");
     vehicleStats.create(this);
     this.routeGraphics.render(250);
-    let vehicle = this.vehicleFactory.create();
-    this.addVehicle(vehicle); // begin immediately
-    let vehicleInfo = new VehicleInfo();
-    vehicleInfo.create(this);
     let pauseButton = new GameButton(this, 30, 140, "Pause");
     pauseButton.setAction(() => {
       this.time.paused = !this.time.paused;
@@ -65,6 +60,10 @@ export class MainScene extends Phaser.Scene {
       } else {
         pauseButton.setText("Pause");
       }
+    });
+    let addStationButton = new GameButton(this, 190, 140, "Add");
+    addStationButton.setAction(() => {
+      chargingStationSelection.show();
     });
     this.eventDispatcher.on("showvehiclestats", (vehicle: Vehicle) => {
       vehicleStats.show(this.controller.vehicles, vehicle);
@@ -78,6 +77,10 @@ export class MainScene extends Phaser.Scene {
     });
     this.eventDispatcher.on("showchargingstationstats", (chargingstation: ChargingStation) => {
       this.showChargingStationStats(chargingstation);
+    });
+    this.eventDispatcher.on("updatechargingstation", (chargingstation: ChargingStation) => {
+      this.chargingStationStats.update(chargingstation);
+      vehicleStats.update(this.controller.vehicles);
     });
 
     document.addEventListener('visibilitychange', () => {

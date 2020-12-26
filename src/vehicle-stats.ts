@@ -1,5 +1,5 @@
 import {Scene} from "phaser";
-import {Vehicle} from "./vehicle";
+import {Status, Vehicle} from "./vehicle";
 import {Subscription} from "rxjs";
 import DOMElement = Phaser.GameObjects.DOMElement;
 
@@ -15,18 +15,19 @@ export class VehicleStats {
   }
 
   create(scene: Scene): void {
-    this.form = scene.add.dom(30, 750).createFromCache(this.key);
+    this.form = scene.add.dom(30, 250).createFromCache(this.key);
+    this.form.setDisplayOrigin(0, 0);
   }
 
   show(vehicles: Vehicle[], selectedVehicle: Vehicle): void {
     this.selectedVehicle = selectedVehicle;
-    let table = this.form.getChildByID('vehiclestable');
-    let attribute = table.getAttribute('style');
     this.cleanup();
     this.showVehicleStats(vehicles);
-    if (attribute === null) {
-      table.setAttribute('style', 'display: block');
-    }
+  }
+
+  update(vehicles: Vehicle[]): void {
+    this.cleanup();
+    this.showVehicleStats(vehicles);
   }
 
   cleanup(): void {
@@ -43,8 +44,11 @@ export class VehicleStats {
 
   private showVehicleStats(vehicles: Vehicle[]) {
     let tableBody = this.form.getChildByID("tablebody");
-    for (let i = 0; i < vehicles.length; i++) {
-      const vehicle = vehicles[i];
+    const moving = vehicles.filter(v => {
+      return v.status === Status.MOVING;
+    });
+    for (let i = 0; i < moving.length; i++) {
+      const vehicle = moving[i];
       let row = tableBody.ownerDocument.createElement('tr');
       if (this.selectedVehicle === vehicle) {
         row.setAttribute('style', 'font-weight: bold');
@@ -67,10 +71,8 @@ export class VehicleStats {
 
   refresh(vehicles: Vehicle[]) {
     let table = this.form.getChildByID('vehiclestable');
-    let attribute = table.getAttribute('style');
-    if (attribute !== null) {
-      this.cleanup();
-      this.showVehicleStats(vehicles);
-    }
+    this.cleanup();
+    this.showVehicleStats(vehicles);
+
   }
 }
