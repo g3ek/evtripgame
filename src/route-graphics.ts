@@ -3,6 +3,7 @@ import {ChargingStationSprite} from "./charging-station-sprite";
 import {Status, Vehicle} from "./vehicle";
 import {ChargingStation} from "./charging-station";
 import {CommonStyle} from "./common-style";
+import Pointer = Phaser.Input.Pointer;
 
 export class RouteGraphics {
 
@@ -12,6 +13,7 @@ export class RouteGraphics {
   private scene: Phaser.Scene;
   private margin: number = 50;
   private marginX: number = 60;
+  private roadWidth: number = 10;
   private distance: number;
   private roadLengthPixels: number;
   private x: number;
@@ -29,6 +31,14 @@ export class RouteGraphics {
     const widthConfig = this.scene.game.config.width;
     const height: number = (<number>heightConfig);
     const width: number = (<number>widthConfig);
+
+    let background = this.scene.add.graphics({
+      fillStyle: {
+        color: 0xffffff,
+        alpha: 1
+      }
+    });
+
     const roadGraphics = this.scene.add.graphics({
       fillStyle: {
         color: 0x0a0ae0,
@@ -37,9 +47,27 @@ export class RouteGraphics {
     });
     this.roadLengthPixels = (<number>height) - (this.margin * 2);
     this.x = width - this.marginX;
-    roadGraphics.fillRect(this.x, this.margin, 10, this.roadLengthPixels);
+    roadGraphics.fillRect(this.x, this.margin, this.roadWidth, this.roadLengthPixels);
     this.distanceToPixelsFactor = RouteGraphics.DISTANCE_METRES / this.roadLengthPixels;
     this.renderDistanceMarkers();
+
+    this.scene.cameras.main.setBounds(0, 0, width - 140, height);
+    let roadCamera = this.scene.cameras.add();
+    background.fillRect(width - 200, 0, 400, height);
+    roadCamera.setViewport(width - 180, 0, 180, height);
+    //roadCamera.setScroll(this.x, this.margin);
+    roadCamera.setBounds(width - 100, 0, 100, height);
+    //roadCamera.centerToBounds();
+    //roadCamera.scrollY = 45;
+    this.scene.input.on('wheel', (pointer: Pointer, currentlyOver, deltaX: number, deltaZ: number, deltaY:number) => {
+      if (deltaZ < 0 && roadCamera.zoom < 3) {
+        roadCamera.setZoom(roadCamera.zoom + 0.1);
+      } else if (deltaZ > 0 && roadCamera.zoom > 1) {
+        roadCamera.setZoom(roadCamera.zoom - 0.1);
+      }
+      roadCamera.centerOnY(pointer.y);
+
+    });
   }
 
   renderDistanceMarkers() {
@@ -80,8 +108,7 @@ export class RouteGraphics {
       if (vehicle.status === Status.MOVING) {
         let distanceInMetres = vehicle.totalDistance;
         let y = distanceInMetres / this.distanceToPixelsFactor;
-        sprite.sprite().x = this.x;
-        sprite.sprite().y = y + this.margin;
+        sprite.render(this.x + this.roadWidth /2, y + this.margin);
       }
     });
   }
