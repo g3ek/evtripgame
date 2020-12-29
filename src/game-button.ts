@@ -2,19 +2,23 @@ import {Scene} from "phaser";
 import {CommonStyle} from "./common-style";
 import Graphics = Phaser.GameObjects.Graphics;
 import Text = Phaser.GameObjects.Text;
+import Container = Phaser.GameObjects.Container;
 
 export class GameButton {
 
   private messageBar: Graphics;
   private textGameObject: Text;
+  private parent: Phaser.GameObjects.Container;
 
-  constructor(scene: Scene, x: number, y: number, text: string) {
+  constructor(scene: Scene, x: number, y: number, text: string, parent?: Container) {
+    this.parent = parent;
     this.create(scene, x, y, text);
   }
 
+
   private create(scene: Scene, x: number, y: number, text: string) {
     this.textGameObject = scene.add.text(x, y, text, CommonStyle.NORMAL_STYLE).setDepth(3);
-    this.textGameObject.setOrigin(-0.4, -0.2);
+    //this.textGameObject.setOrigin(-0.4, -0.2);
     //this.message.setInteractive(new Phaser.Geom.Rectangle(0, 0, 720, this.message.height+70), Phaser.Geom.Rectangle.Contains);
     let messageBar = scene.add.graphics({
       x: x,

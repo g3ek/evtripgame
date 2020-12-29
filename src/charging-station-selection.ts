@@ -1,16 +1,21 @@
-import DOMElement = Phaser.GameObjects.DOMElement;
 import Graphics = Phaser.GameObjects.Graphics;
+import Container = Phaser.GameObjects.Container;
 import {Scene} from "phaser";
 import {ChargingStationFactory} from "./charging-station-factory";
 import {EvtripEventDispatcher} from "./evtrip-event-dispatcher";
 import {RouteGraphics} from "./route-graphics";
+import {ChoseNumberComponent} from "./chose-number-component";
+import {CommonStyle} from "./common-style";
 
 export class ChargingStationSelection {
 
-  private form: DOMElement;
+
   private key: string;
   private eventDispatcher: EvtripEventDispatcher;
   private backScreen: Graphics;
+  private distanceText: Text;
+  private distanceSelected: number;
+  private container: Container;
 
   constructor(key: string, eventDispatcher: EvtripEventDispatcher) {
     this.key = key;
@@ -18,38 +23,52 @@ export class ChargingStationSelection {
   }
 
   create(scene: Scene): void {
-    this.backScreen = scene.add.graphics({
-      fillStyle: {
-        alpha: 0.9,
-        color: 0xffffff
-      }
-    });
-    this.backScreen.fillRect(200, 350, 200, 400);
-    this.backScreen.setVisible(false);
-    this.backScreen.setZ(2);
-    this.backScreen.displayOriginX = 0;
-    this.backScreen.displayOriginY = 0
-    this.form = scene.add.dom(200, 350).createFromCache(this.key);
-    this.form.setVisible(false);
-    this.form.setDepth(3)
+    this.container = scene.add.container(30, 200);
+    this.container.setVisible(false);
 
-    let select: HTMLSelectElement = <HTMLSelectElement>this.form.getChildByName("stations");
-    //let options: HTMLOptionsCollection = this.form['options']; // todo avoid this notation
-    ChargingStationFactory.CAPACITIES.forEach(power => {
-      let option = new Option(power+"", power+"");
-      select.appendChild(option);
-    });
-    let addButton = this.form.getChildByID("add");
-    let distanceField = <HTMLInputElement>this.form.getChildByName("distance");
-    let slotsField = <HTMLInputElement>this.form.getChildByName("slots");
-    let messageElement = <HTMLParagraphElement>this.form.getChildByID("message");
-    addButton.addEventListener('click', () => {
-      messageElement.textContent = "Add station";
-      const valid: boolean = this.validate(messageElement, distanceField);
-      if (valid) {
-        this.eventDispatcher.emit("addchargingstation", select.value, distanceField.value, slotsField.value);
+    this.backScreen = scene.make.graphics({
+      fillStyle: {
+        color: 0xffffff,
+        alpha: 0.5
       }
     });
+    this.backScreen.fillRect(0, 0, 400, 220);
+    this.backScreen.lineStyle(5, 0x000000);
+    this.backScreen.strokeRoundedRect(0, 0, 400, 220);
+    this.container.add(this.backScreen);
+
+    let title = scene.make.text({});
+    title.setText("Add charging station")
+    title.setPosition(10, 10);
+    title.setStyle(CommonStyle.NORMAL_STYLE); // need to set, probably a bug
+    this.container.add(title);
+
+    let choseCapacity = new ChoseNumberComponent(ChargingStationFactory.CAPACITIES);
+    let containerCapacity = choseCapacity.create(this.container, scene, 110);
+    this.container.add(containerCapacity);
+    containerCapacity.setPosition(10, 70);
+
+    let slotValues = [1, 2, 3, 4, 5, 6, 7, 9, 10];
+    let choseSlots = new ChoseNumberComponent(slotValues);
+    let containerSlots = choseSlots.create(this.container, scene, 70);
+    this.container.add(containerSlots);
+    containerSlots.setPosition(10, 120);
+
+    let distanceSelected = scene.make.text({});
+    distanceSelected.setText("Distance: select on road")
+    distanceSelected.setPosition(10, 170);
+    distanceSelected.setStyle(CommonStyle.NORMAL_STYLE); // need to set, probably a bug
+    this.container.add(distanceSelected);
+
+    this.eventDispatcher.on('distanceselected', (distance: number) => {
+      if (distance >= 0 && distance <= RouteGraphics.DISTANCE_METRES) {
+        const kms = Math.floor(distance / 1000);
+        distanceSelected.setText("Distance: " + kms);
+        this.distanceSelected = kms*1000;
+      }
+    });
+
+    //let addButton = new GameButton(this.container, scene)
   }
 
   private validate(messageElement: HTMLParagraphElement, distanceField: HTMLInputElement) {
@@ -67,7 +86,6 @@ export class ChargingStationSelection {
   }
 
   show() {
-    this.form.visible = !this.form.visible;
-    //this.backScreen.setVisible(this.form.visible);
+    this.container.visible = !this.container.visible
   }
 }

@@ -3,7 +3,10 @@ import {ChargingStationSprite} from "./charging-station-sprite";
 import {Status, Vehicle} from "./vehicle";
 import {ChargingStation} from "./charging-station";
 import {CommonStyle} from "./common-style";
+import {EvtripEventDispatcher} from "./evtrip-event-dispatcher";
 import Pointer = Phaser.Input.Pointer;
+import Camera = Phaser.Cameras.Scene2D.Camera;
+import Point = Phaser.Geom.Point;
 
 export class RouteGraphics {
 
@@ -20,9 +23,14 @@ export class RouteGraphics {
   private distanceToPixelsFactor: number;
   private vehicleSprites: VehicleSprite[] = [];
   private chargingStationSprites: ChargingStationSprite[] = [];
+  private roadCamera: Camera;
+  private swipePoint: Point = null;
+  private cameraPoint: Point = null;
+  private eventDispatcher: EvtripEventDispatcher;
 
-  constructor(scene: Phaser.Scene) {
+  constructor(scene: Phaser.Scene, eventDispatcher: EvtripEventDispatcher) {
     this.scene = scene;
+    this.eventDispatcher = eventDispatcher;
   }
 
   render(distance: number): void {
@@ -52,21 +60,40 @@ export class RouteGraphics {
     this.renderDistanceMarkers();
 
     this.scene.cameras.main.setBounds(0, 0, width - 140, height);
-    let roadCamera = this.scene.cameras.add();
+    this.roadCamera = this.scene.cameras.add();
     background.fillRect(width - 200, 0, 400, height);
-    roadCamera.setViewport(width - 180, 0, 180, height);
+    background.setInteractive(new Phaser.Geom.Rectangle(width-200, 0, 400, height), Phaser.Geom.Rectangle.Contains);
+
+    this.roadCamera.setViewport(width - 180, 0, 180, height);
     //roadCamera.setScroll(this.x, this.margin);
-    roadCamera.setBounds(width - 100, 0, 100, height);
+    this.roadCamera.setBounds(width - 100, 0, 100, height);
     //roadCamera.centerToBounds();
     //roadCamera.scrollY = 45;
-    this.scene.input.on('wheel', (pointer: Pointer, currentlyOver, deltaX: number, deltaZ: number, deltaY:number) => {
-      if (deltaZ < 0 && roadCamera.zoom < 3) {
-        roadCamera.setZoom(roadCamera.zoom + 0.1);
-      } else if (deltaZ > 0 && roadCamera.zoom > 1) {
-        roadCamera.setZoom(roadCamera.zoom - 0.1);
+    this.scene.input.on('wheel', (pointer: Pointer, currentlyOver, deltaX: number, deltaZ: number) => {
+      if (deltaZ < 0 && this.roadCamera.zoom < 3) {
+        this.roadCamera.setZoom(this.roadCamera.zoom + 0.1);
+      } else if (deltaZ > 0 && this.roadCamera.zoom > 1) {
+        this.roadCamera.setZoom(this.roadCamera.zoom - 0.1);
       }
-      roadCamera.centerOnY(pointer.y);
+      this.roadCamera.centerOnY(pointer.y);
+    });
 
+    background.on('pointerdown', (pointer: Pointer, currentlyOver) => {
+      this.swipePoint = new Point(pointer.x, pointer.y);
+      this.cameraPoint = new Point(this.roadCamera.scrollX, this.roadCamera.scrollY);
+    });
+    background.on('pointerup', () => {
+      this.swipePoint = null;
+      this.cameraPoint = null;
+    });
+    background.on('pointerout', () => {
+      this.swipePoint = null;
+      this.cameraPoint = null;
+    });
+    background.on('pointerup', (pointer: Pointer) => {
+      let worldPoint = this.roadCamera.getWorldPoint(pointer.x, pointer.y);
+      const distance = (worldPoint.y-this.margin) * this.distanceToPixelsFactor;
+      this.eventDispatcher.emit('distanceselected', distance);
     });
   }
 
@@ -103,6 +130,13 @@ export class RouteGraphics {
   }
 
   update(): void {
+    if (this.swipePoint != null) {
+      let activePointer = this.scene.input.activePointer;
+      const xdelta = activePointer.x - this.swipePoint.x;
+      const ydelta = activePointer.y - this.swipePoint.y;
+      this.roadCamera.scrollX = this.cameraPoint.x - xdelta;
+      this.roadCamera.scrollY = this.cameraPoint.y -ydelta;
+    }
     this.vehicleSprites.forEach(sprite => {
       let vehicle = sprite.getVehicle();
       if (vehicle.status === Status.MOVING) {
