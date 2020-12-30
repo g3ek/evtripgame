@@ -50,7 +50,9 @@ export class MainScene extends Phaser.Scene {
     //let vehicleStats = new VehicleStats("vehiclestats");
     //vehicleStats.create(this);
     this.routeGraphics.render(250);
-    let pauseButton = new GameButton(this, 30, 140, "Pause");
+    const pauseContainer = this.add.container(30, 140);
+    let pauseButton = new GameButton();
+    pauseButton.create(this, pauseContainer, "Pause", 150);
     pauseButton.setAction(() => {
       this.time.paused = !this.time.paused;
       if (this.time.paused) {
@@ -60,7 +62,9 @@ export class MainScene extends Phaser.Scene {
         pauseButton.setText("Pause");
       }
     });
-    let addStationButton = new GameButton(this, 190, 140, "Add");
+    const addStationContainer = this.add.container(190, 140);
+    let addStationButton = new GameButton();
+    addStationButton.create(this, addStationContainer, "Add", 100);
     addStationButton.setAction(() => {
       chargingStationSelection.show();
     });
@@ -106,7 +110,7 @@ export class MainScene extends Phaser.Scene {
 
   private addChargingStation(power: number, distance: number, slots: number): void {
     let chargingStation = new ChargingStation();
-    chargingStation.locationInMeters = distance * 1000;
+    chargingStation.locationInMeters = distance;
     chargingStation.power = power;
     chargingStation.slots = slots;
     let csSprite = new ChargingStationSprite(chargingStation, this.eventDispatcher);

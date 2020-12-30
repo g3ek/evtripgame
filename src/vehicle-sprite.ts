@@ -26,16 +26,10 @@ export class VehicleSprite {
         alpha: 1
       }
     });
-    this.circle.setDepth(0);
     this.circle.fillCircle(0, 0, radius);
     this.circle.lineStyle(2, 0x000000, 1);
     this.circle.strokeCircle(0, 0, 21);
-    // this.graphics = scene.add.graphics({
-    //   fillStyle: {
-    //     color: 0xffffff,
-    //     alpha: 1
-    //   }
-    // });
+
     if (!VehicleSprite.texturecreated) {
       VehicleSprite.texturecreated = true;
       let spriteGfx = scene.add.graphics({
@@ -48,8 +42,6 @@ export class VehicleSprite {
       spriteGfx.destroy();
     }
     this.graphics = scene.add.sprite(0, 0, 'vst');
-    //this.graphics.fillRect(0, 0, 40, 40);
-
     this.circleMask = scene.make.graphics({
       fillStyle: {
         color: 0xffffff,
@@ -57,9 +49,6 @@ export class VehicleSprite {
       }
     });
     this.circleMask.fillCircle(0, 0, radius);
-
-    //this.circleMask.lineStyle(5, 0x000000, 1);
-    //this.circleMask.strokeCircle(0, 0, 35);
     let mask = this.circleMask.createGeometryMask();
     this.graphics.setMask(mask);
     //this.circleMask.setInteractive(new Phaser.Geom.Circle(0, 0, radius), Phaser.Geom.Circle.Contains);
@@ -92,10 +81,21 @@ export class VehicleSprite {
    }
 
   sprite(): Graphics {
-    return this.circleMask;
+    return this.circle;
+  }
+
+  visible(on: boolean) {
+    this.circle.setVisible(on);
+    this.graphics.setVisible(on);
   }
 
   getVehicle(): Vehicle {
     return this.vehicle;
+  }
+
+  destroy(): void {
+    this.circleMask.destroy();
+    this.circle.destroy();
+    this.graphics.destroy();
   }
 }

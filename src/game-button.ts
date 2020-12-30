@@ -8,40 +8,42 @@ export class GameButton {
 
   private messageBar: Graphics;
   private textGameObject: Text;
-  private parent: Phaser.GameObjects.Container;
 
-  constructor(scene: Scene, x: number, y: number, text: string, parent?: Container) {
-    this.parent = parent;
-    this.create(scene, x, y, text);
+  constructor() {
   }
 
+  create(scene: Scene, container: Container, text: string, width: number): void {
+    this.textGameObject = scene.make.text({});
+    this.textGameObject.setText(text);
+    this.textGameObject.setPosition(20, 7);
+    this.textGameObject.setStyle(CommonStyle.NORMAL_STYLE);
+    this.textGameObject.setDepth(1);
 
-  private create(scene: Scene, x: number, y: number, text: string) {
-    this.textGameObject = scene.add.text(x, y, text, CommonStyle.NORMAL_STYLE).setDepth(3);
-    //this.textGameObject.setOrigin(-0.4, -0.2);
-    //this.message.setInteractive(new Phaser.Geom.Rectangle(0, 0, 720, this.message.height+70), Phaser.Geom.Rectangle.Contains);
-    let messageBar = scene.add.graphics({
-      x: x,
-      y: y,
+    let messageBar;
+    let messageBarConfig = {
+      x: 0,
+      y: 0,
       fillStyle: {
         color: 0x909090,
         alpha: 0.5
       }
-    }).setDepth(1);
-    const width = text.length*30;
-    const height = 50;
-    messageBar.fillRoundedRect(0, 0, width, height, 15);
-    messageBar.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), Phaser.Geom.Rectangle.Contains);
+    };
+    messageBar = scene.make.graphics(messageBarConfig);
+
+    messageBar.fillRoundedRect(0, 0, width, 50, 15);
+    messageBar.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, 50), Phaser.Geom.Rectangle.Contains);
 
     messageBar.on('pointerover', () => {
       messageBar.lineStyle(10, 0x000000, 1);
-      messageBar.strokeRoundedRect(0, 0, width, height, 15);
+      messageBar.strokeRoundedRect(0, 0, width, 50, 15);
     });
     messageBar.on('pointerout', () => {
       messageBar.clear();
-      messageBar.fillRoundedRect(0, 0, width, height, 15);
+      messageBar.fillRoundedRect(0, 0, width, 50, 15);
     });
     this.messageBar = messageBar;
+    container.add(messageBar);
+    container.add(this.textGameObject);
   }
 
   setAction(action: () => void) {

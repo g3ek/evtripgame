@@ -40,12 +40,15 @@ export class RouteGraphics {
     const height: number = (<number>heightConfig);
     const width: number = (<number>widthConfig);
 
+    const scrollWidth = 240;
     let background = this.scene.add.graphics({
       fillStyle: {
         color: 0xffffff,
         alpha: 1
       }
     });
+    background.fillRect(width - scrollWidth, 0, 400, height);
+    background.setInteractive(new Phaser.Geom.Rectangle(width-scrollWidth, 0, 400, height), Phaser.Geom.Rectangle.Contains);
 
     const roadGraphics = this.scene.add.graphics({
       fillStyle: {
@@ -59,16 +62,10 @@ export class RouteGraphics {
     this.distanceToPixelsFactor = RouteGraphics.DISTANCE_METRES / this.roadLengthPixels;
     this.renderDistanceMarkers();
 
-    this.scene.cameras.main.setBounds(0, 0, width - 140, height);
+    this.scene.cameras.main.setBounds(0, 0, width-scrollWidth, height);
     this.roadCamera = this.scene.cameras.add();
-    background.fillRect(width - 200, 0, 400, height);
-    background.setInteractive(new Phaser.Geom.Rectangle(width-200, 0, 400, height), Phaser.Geom.Rectangle.Contains);
-
-    this.roadCamera.setViewport(width - 180, 0, 180, height);
-    //roadCamera.setScroll(this.x, this.margin);
-    this.roadCamera.setBounds(width - 100, 0, 100, height);
-    //roadCamera.centerToBounds();
-    //roadCamera.scrollY = 45;
+    this.roadCamera.setViewport(width - scrollWidth, 0, scrollWidth, height);
+    this.roadCamera.setBounds(width - scrollWidth, 0, scrollWidth, height);
     this.scene.input.on('wheel', (pointer: Pointer, currentlyOver, deltaX: number, deltaZ: number) => {
       if (deltaZ < 0 && this.roadCamera.zoom < 3) {
         this.roadCamera.setZoom(this.roadCamera.zoom + 0.1);
@@ -113,7 +110,7 @@ export class RouteGraphics {
 
   removeVehicle(vehicle: Vehicle) {
     const toRemove = this.findVehicleSprite(vehicle);
-    toRemove.sprite().destroy(false);
+    toRemove.destroy();
     this.vehicleSprites = this.vehicleSprites.filter(v => v !== toRemove);
   }
 
@@ -155,11 +152,8 @@ export class RouteGraphics {
   renderChargingVehicle(vehicle: Vehicle, chargingStation: ChargingStation): void {
     const vehicleSprite = this.findVehicleSprite(vehicle);
     const chargingStationSprite = this.findChargingStationSprite(chargingStation);
-    //vehicleSprite.sprite().y = chargingStationSprite.circle.y;
     chargingStationSprite.renderVehicle();
-    vehicleSprite.sprite().setVisible(false);
-    //let index = chargingStation.vehicles.findIndex(v => v === vehicle);
-    //vehicleSprite.sprite().x = this.x - 40 - (index * 40);
+    vehicleSprite.visible(false);
   }
 
   renderMovingVehicle(vehicle: Vehicle, chargingStation: ChargingStation) {
@@ -167,7 +161,7 @@ export class RouteGraphics {
     let distanceInMetres = vehicle.totalDistance;
     sprite.sprite().y = distanceInMetres / this.distanceToPixelsFactor;
     sprite.sprite().x = this.x;
-    sprite.sprite().setVisible(true);
+    sprite.visible(true);
     const chargingStationSprite = this.findChargingStationSprite(chargingStation);
     chargingStationSprite.renderVehicle();
   }
@@ -175,7 +169,7 @@ export class RouteGraphics {
   renderWaitingVehicle(vehicle: Vehicle, chargingStation: ChargingStation) {
     const vehicleSprite = this.findVehicleSprite(vehicle);
     const chargingStationSprite = this.findChargingStationSprite(chargingStation);
-    vehicleSprite.sprite().setVisible(false);
+    vehicleSprite.visible(false);
     chargingStationSprite.renderVehicle();
     //vehicleSprite.sprite().y = chargingStationSprite.circle.y;
     //vehicleSprite.sprite().x = this.x - (chargingStation.slots*40) - 10 - (chargingStation.waiting.length * 20);

@@ -6,6 +6,7 @@ import {EvtripEventDispatcher} from "./evtrip-event-dispatcher";
 import {RouteGraphics} from "./route-graphics";
 import {ChoseNumberComponent} from "./chose-number-component";
 import {CommonStyle} from "./common-style";
+import {GameButton} from "./game-button";
 
 export class ChargingStationSelection {
 
@@ -32,9 +33,9 @@ export class ChargingStationSelection {
         alpha: 0.5
       }
     });
-    this.backScreen.fillRect(0, 0, 400, 220);
+    this.backScreen.fillRect(0, 0, 400, 280);
     this.backScreen.lineStyle(5, 0x000000);
-    this.backScreen.strokeRoundedRect(0, 0, 400, 220);
+    this.backScreen.strokeRoundedRect(0, 0, 400, 280);
     this.container.add(this.backScreen);
 
     let title = scene.make.text({});
@@ -68,7 +69,17 @@ export class ChargingStationSelection {
       }
     });
 
-    //let addButton = new GameButton(this.container, scene)
+    const addButtonContainer = scene.make.container({});
+    this.container.add(addButtonContainer);
+    let addButton = new GameButton();
+    addButton.create(scene, addButtonContainer, "Add", 150);
+    addButtonContainer.setPosition(10, 220);
+    addButton.setAction(() => {
+      let power = choseCapacity.getValue();
+      let distance = this.distanceSelected;
+      let slots = choseSlots.getValue();
+      this.eventDispatcher.emit('addchargingstation', power, distance, slots);
+    });
   }
 
   private validate(messageElement: HTMLParagraphElement, distanceField: HTMLInputElement) {
