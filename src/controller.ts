@@ -128,6 +128,7 @@ export class Controller {
     this.afterChargingOrMoving(vehicle);
     chargingStation.remove(vehicle);
     this.routeGraphics.renderMovingVehicle(vehicle, chargingStation);
+    this.eventDispatcher.emit('updatechargingstation', chargingStation);
   }
 
   private activateWaitingVehicle(chargingStation: ChargingStation): void {

@@ -45,8 +45,7 @@ export class MainScene extends Phaser.Scene {
 
     let chargingStationSelection = new ChargingStationSelection("chargingstationselection", this.eventDispatcher);
     chargingStationSelection.create(this);
-    this.chargingStationStats = new ChargingStationStats("chargingstationstats")
-    this.chargingStationStats.create(this);
+    this.chargingStationStats = new ChargingStationStats(this, this.routeGraphics, 30, 250);
     //let vehicleStats = new VehicleStats("vehiclestats");
     //vehicleStats.create(this);
     this.routeGraphics.render(250);
@@ -102,7 +101,8 @@ export class MainScene extends Phaser.Scene {
   }
 
   private addVehicle(vehicle): void {
-    let vehicleSprite = new VehicleSprite(vehicle, this.eventDispatcher);
+    const container = this.add.container();
+    let vehicleSprite = new VehicleSprite(vehicle, this.eventDispatcher, container);
     vehicleSprite.create(this);
     this.controller.addVehicle(vehicle);
     this.routeGraphics.addVehicle(vehicleSprite);

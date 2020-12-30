@@ -25,17 +25,18 @@ export class ChargingStationSelection {
 
   create(scene: Scene): void {
     this.container = scene.add.container(30, 200);
+    this.container.setDepth(1);
     this.container.setVisible(false);
 
     this.backScreen = scene.make.graphics({
       fillStyle: {
-        color: 0xffffff,
-        alpha: 0.5
+        color: 0xffffff
       }
     });
     this.backScreen.fillRect(0, 0, 400, 280);
     this.backScreen.lineStyle(5, 0x000000);
     this.backScreen.strokeRoundedRect(0, 0, 400, 280);
+    this.backScreen.setDepth(1);
     this.container.add(this.backScreen);
 
     let title = scene.make.text({});

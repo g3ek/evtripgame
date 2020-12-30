@@ -2,6 +2,7 @@ import {Vehicle} from "./vehicle";
 import {EvtripEventDispatcher} from "./evtrip-event-dispatcher";
 import Graphics = Phaser.GameObjects.Graphics;
 import Image = Phaser.GameObjects.Image;
+import Container = Phaser.GameObjects.Container;
 
 export class VehicleSprite {
 
@@ -11,16 +12,17 @@ export class VehicleSprite {
   private graphics: Image;
   private circle: Graphics;
   private static texturecreated: boolean = false;
+  private container: Container;
 
-
-  constructor(vehicle: Vehicle, eventDispatcher: EvtripEventDispatcher) {
+  constructor(vehicle: Vehicle, eventDispatcher: EvtripEventDispatcher, container: Container) {
     this.vehicle = vehicle;
     this.eventDispatcher = eventDispatcher;
+    this.container = container;
   }
 
   create(scene: Phaser.Scene): void {
     let radius: number = 20;
-    this.circle = scene.add.graphics({
+    this.circle = scene.make.graphics({
       fillStyle: {
         color: 0xf0f0f0,
         alpha: 1
@@ -29,6 +31,7 @@ export class VehicleSprite {
     this.circle.fillCircle(0, 0, radius);
     this.circle.lineStyle(2, 0x000000, 1);
     this.circle.strokeCircle(0, 0, 21);
+    this.container.add(this.circle);
 
     if (!VehicleSprite.texturecreated) {
       VehicleSprite.texturecreated = true;
@@ -51,6 +54,7 @@ export class VehicleSprite {
     this.circleMask.fillCircle(0, 0, radius);
     let mask = this.circleMask.createGeometryMask();
     this.graphics.setMask(mask);
+    this.container.add(this.graphics);
     //this.circleMask.setInteractive(new Phaser.Geom.Circle(0, 0, radius), Phaser.Geom.Circle.Contains);
     //this.circleMask.on('pointerup', (pointer: Pointer) => {
     //  this.eventDispatcher.emit("showvehiclestats", this.vehicle);
@@ -59,18 +63,16 @@ export class VehicleSprite {
   }
 
   render(x: number, y: number): void {
+    this.container.setPosition(x, y);
+    // need to move the mask, adding it to container doesn't work :-(
     this.circleMask.x = x;
     this.circleMask.y = y;
-    this.circle.x = x;
-    this.circle.y = y;
-
-    this.graphics.x = x;
     const soc = this.vehicle.soc;
     const factor = this.vehicle.capacity / 40;
     const perfectFactor = this.vehicle.capacity / 100;
     const yOffset = soc / factor;
     const percent = soc / perfectFactor;
-    this.graphics.y = (y-yOffset)+40;
+    this.graphics.y = 40-yOffset;
     if (percent >= 20) {
       this.graphics.setTint(0x00ff00);
     } else if (percent >= 10) {
@@ -80,13 +82,10 @@ export class VehicleSprite {
     }
    }
 
-  sprite(): Graphics {
-    return this.circle;
-  }
-
   visible(on: boolean) {
-    this.circle.setVisible(on);
-    this.graphics.setVisible(on);
+    this.container.setVisible(on);
+    // this.circle.setVisible(on);
+    // this.graphics.setVisible(on);
   }
 
   getVehicle(): Vehicle {
@@ -94,6 +93,7 @@ export class VehicleSprite {
   }
 
   destroy(): void {
+    this.container.destroy();
     this.circleMask.destroy();
     this.circle.destroy();
     this.graphics.destroy();

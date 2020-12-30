@@ -159,8 +159,7 @@ export class RouteGraphics {
   renderMovingVehicle(vehicle: Vehicle, chargingStation: ChargingStation) {
     const sprite = this.findVehicleSprite(vehicle);
     let distanceInMetres = vehicle.totalDistance;
-    sprite.sprite().y = distanceInMetres / this.distanceToPixelsFactor;
-    sprite.sprite().x = this.x;
+    sprite.render(this.x, distanceInMetres / this.distanceToPixelsFactor);
     sprite.visible(true);
     const chargingStationSprite = this.findChargingStationSprite(chargingStation);
     chargingStationSprite.renderVehicle();

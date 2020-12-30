@@ -2,45 +2,57 @@ import {Scene} from "phaser";
 import {ChargingStation} from "./charging-station";
 import {Vehicle} from "./vehicle";
 import {Subscription} from "rxjs";
-import {AbstractChargingStrategy} from "./charging-strategy";
-import DOMElement = Phaser.GameObjects.DOMElement;
+import {CommonStyle} from "./common-style";
+import {RouteGraphics} from "./route-graphics";
+import Container = Phaser.GameObjects.Container;
 
 export class ChargingStationStats {
 
-  private key: string;
-  private form: DOMElement;
   private current: ChargingStation = null;
   private subscriptions: Subscription[] = [];
+  private scene: Scene;
+  private container: Container = null;
+  private routeGraphics: RouteGraphics;
 
-  constructor(key: string) {
-    this.key = key;
+  constructor(scene: Scene, routeGraphics: RouteGraphics, x: number, y: number) {
+    this.scene = scene;
+    this.routeGraphics = routeGraphics;
+    this.container = this.scene.add.container(x, y);
+    this.container.setVisible(false);
+    this.container.setDepth(-1);
   }
 
-  create(scene: Scene): void {
-    this.form = scene.add.dom(30, 750).createFromCache(this.key);
+  makeHeaders() {
+    let socHeader = this.scene.make.text({});
+    socHeader.setStyle(CommonStyle.NORMAL_STYLE);
+    socHeader.setPosition(50, 0);
+    socHeader.setText("SoC");
+    this.container.add(socHeader);
   }
 
   update(chargingStation: ChargingStation): void {
     if (chargingStation === this.current) {
       this.cleanup();
+      this.makeHeaders();
       this.showVehicleStats(chargingStation.vehicles, chargingStation.waiting);
     }
   }
 
   show(chargingStation: ChargingStation): void {
-    let table = this.form.getChildByID('stationtable');
     if (this.current === null) {
-      table.setAttribute('style', 'display: block');
+      this.container.setVisible(true);
       this.current = chargingStation;
+      this.makeHeaders();
       this.showVehicleStats(chargingStation.vehicles, chargingStation.waiting);
     } else if (this.current !== chargingStation) {
       this.cleanup();
+      this.makeHeaders();
       this.current = chargingStation;
       this.showVehicleStats(chargingStation.vehicles, chargingStation.waiting);
     } else {
-      this.current = null;
-      table.removeAttribute('style');
       this.cleanup();
+      this.current = null;
+      this.container.setVisible(false);
     }
   }
 
@@ -49,44 +61,54 @@ export class ChargingStationStats {
       s.unsubscribe();
     });
     this.subscriptions = [];
-    let tableBody = this.form.getChildByID('tablebody');
-    let children = tableBody.children;
-    for(let i=children.length-1; children.length > 0; i--) {
-      children.item(i).remove();
+    this.container.removeAll(true);
+    this.cleanUpVehicleSprites();
+  }
+
+  private cleanUpVehicleSprites() {
+    if (this.current !== null) {
+      this.current.vehicles
+        .filter(v => v !== null)
+        .forEach(v => {
+        let vehicleSprite = this.routeGraphics.findVehicleSprite(v);
+        vehicleSprite.visible(false);
+      });
+      this.current.waiting.forEach(v => {
+        let vehicleSprite = this.routeGraphics.findVehicleSprite(v);
+        vehicleSprite.visible(false);
+      });
     }
   }
 
   private showVehicleStats(vehicles: Vehicle[], waiting: Vehicle[]) {
-    let tableBody = this.form.getChildByID("tablebody");
     for(let i=0; i < vehicles.length; i++) {
       const vehicle = vehicles[i];
-      if (vehicle !== null) {
-        this.makeRow(vehicle, tableBody)
+      if (vehicle != null) {
+        let vehicleSprite = this.routeGraphics.findVehicleSprite(vehicle);
+        vehicleSprite.render(30, 300 + (i * 45));
+        vehicleSprite.visible(true);
+        this.makeSoCField(vehicle, i);
       }
     }
     for(let i=0; i < waiting.length; i++) {
-      this.makeRow(waiting[i], tableBody);
+      const vehicle = waiting[i];
+      let yOffset = (i+this.current.slots)
+      let vehicleSprite = this.routeGraphics.findVehicleSprite(vehicle);
+      vehicleSprite.render(30, 300 + (yOffset * 45));
+      vehicleSprite.visible(true);
+      this.makeSoCField(vehicle, i+this.current.slots);
     }
   }
 
-  makeRow(vehicle: Vehicle, tableBody: Element): void {
-    let row = tableBody.ownerDocument.createElement('tr');
-    let idTD = tableBody.ownerDocument.createElement('td')
-    let socTD = tableBody.ownerDocument.createElement('td')
-    let strategyTD = tableBody.ownerDocument.createElement('td')
-    let actionTD = tableBody.ownerDocument.createElement('td');
-    row.appendChild(idTD);
-    row.appendChild(socTD);
-    row.appendChild(strategyTD);
-    row.appendChild(actionTD);
-    idTD.textContent = vehicle.id;
-    actionTD.textContent = 'Action';
-    strategyTD.textContent = AbstractChargingStrategy.getLabel(vehicle.chargingStrategy.type());
-    tableBody.appendChild(row);
+  private makeSoCField(vehicle: Vehicle, index: number) {
+    let socText = this.scene.make.text({});
+    socText.setStyle(CommonStyle.NORMAL_STYLE);
+    socText.setPosition(50, 40+(index*45));
+    this.container.add(socText);
     const factor = vehicle.capacity / 100;
     let subscription = vehicle.observable.subscribe(v => {
       const socPercent = Math.round((v.soc / factor)*100) / 100;
-      socTD.textContent = '' + socPercent;
+      socText.setText('' + socPercent);
     });
     this.subscriptions.push(subscription);
   }

@@ -57,7 +57,8 @@ export class VehicleFactory {
       callback: () => {
         let vehicle = this.create();
         this.eventDispatcher.emit('newvehicle', vehicle);
-      }
+      },
+      startAt: 120000
     });
   }
 
