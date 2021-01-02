@@ -2,18 +2,15 @@ import {Scene} from "phaser";
 import {ChargingStation} from "./charging-station";
 import {EvtripEventDispatcher} from "./evtrip-event-dispatcher";
 import {CommonStyle} from "./common-style";
-import Graphics = Phaser.GameObjects.Graphics;
 import Pointer = Phaser.Input.Pointer;
 import Text = Phaser.GameObjects.Text;
 import Container = Phaser.GameObjects.Container;
 
 export class ChargingStationSprite {
 
-  private _circle: Graphics;
   private _chargingStation: ChargingStation;
   private _eventDispatcher: EvtripEventDispatcher;
   private _slotsText: Text;
-  private _parking: Graphics;
   private _parkingText: Text;
   private _container: Container;
 
@@ -23,61 +20,50 @@ export class ChargingStationSprite {
   }
 
   create(scene: Scene): void {
+    this._container = scene.add.container();
+    const graphics = scene.make.graphics({});
+    graphics.fillStyle(0x0aa0a0);
+    graphics.beginPath();
+    graphics.moveTo(0, 0);
+    graphics.lineTo(130, 0);
+    graphics.lineTo(130, 15);
+    graphics.lineTo(150, 15);
+    graphics.lineTo(150, 25);
+    graphics.lineTo(130, 25);
+    graphics.lineTo(130, 40);
+    graphics.lineTo(0, 40);
+    graphics.moveTo(0, 0);
+    graphics.fillPath();
+    this._container.add(graphics);
 
+    this._slotsText = scene.make.text({});
+    this._slotsText.setOrigin(0.5, 0.5);
+    this._slotsText.setStyle(CommonStyle.NORMAL_STYLE);
+    this._slotsText.setText("0/"+this.chargingStation.slots);
+    this._slotsText.setPosition(85, 20);
+    this._container.add(this._slotsText);
 
+    this._parkingText = scene.make.text({});
+    this._parkingText.setOrigin(0.5, 0.5);
+    this._parkingText.setStyle(CommonStyle.NORMAL_STYLE);
+    this._parkingText.setText("0");
+    this._parkingText.setPosition(20, 20);
+    this._container.add(this._parkingText);
 
-    let radius: number = 40;
-    this._circle = scene.add.graphics({
-      fillStyle: {
-        color: 0x0aa0a0,
-        alpha: 1
-      }
-    });
-    this._circle.fillCircle(0, 0, radius);
-    this._circle.displayOriginY = 0.5;
-    this._circle.setInteractive(new Phaser.Geom.Circle(0, 0, radius), Phaser.Geom.Circle.Contains);
-    this._circle.on('pointerup', (pointer: Pointer) => {
+    graphics.setInteractive(new Phaser.Geom.Rectangle(0, 0, 130, 40), Phaser.Geom.Rectangle.Contains);
+    graphics.on('pointerup', (pointer: Pointer) => {
       this._eventDispatcher.emit("showchargingstationstats", this.chargingStation);
     });
-    this._slotsText = scene.add.text(0, 0, "0/"+this.chargingStation.slots, CommonStyle.NORMAL_STYLE);
-    this._slotsText.setOrigin(0.5, 0.5);
-    this._parking = scene.add.graphics({
-      fillStyle: {
-        color: 0x8e8eee,
-        alpha: 1
-      }
-    });
-    this._parking.fillRect(0, 0, 80, 80);
-    //this._parking.displayOriginY = 0;
-    //this._parking.displayOriginX = 0;
-    this._parkingText = scene.add.text(0, 0, "0", CommonStyle.NORMAL_STYLE);
-    this._parkingText.setOrigin(0.5, 0.5);
-    this._parking.setInteractive(new Phaser.Geom.Rectangle(0, 0, 40, 40), Phaser.Geom.Rectangle.Contains);
-    this._parking.on('pointerup', (pointer: Pointer) => {
-      this._eventDispatcher.emit("showparkingstats", this.chargingStation);
-    });
-
   }
 
   render(distanceToPixelsFactor: number, x: number, margin: number): void {
     const locationInMeters = this.chargingStation.locationInMeters;
     let y = locationInMeters / distanceToPixelsFactor;
-    this._circle.x = x - 40;
-    this._circle.y = y + margin;
-    this._slotsText.x = x - 40;
-    this._slotsText.y = y + margin;
-    this._parking.x = x - 160;
-    this._parking.y = y + margin - 40;
-    this._parkingText.x = x -120;
-    this._parkingText.y = y + margin;
+    this._container.setPosition(x-150, y+margin-20);
   }
 
   get chargingStation(): ChargingStation {
     return this._chargingStation;
-  }
-
-  get circle(): Phaser.GameObjects.Graphics {
-    return this._circle;
   }
 
   renderVehicle() {
