@@ -3,6 +3,7 @@ import {EvtripEventDispatcher} from "./evtrip-event-dispatcher";
 import Graphics = Phaser.GameObjects.Graphics;
 import Image = Phaser.GameObjects.Image;
 import Container = Phaser.GameObjects.Container;
+import Pointer = Phaser.Input.Pointer;
 
 export class VehicleSprite {
 
@@ -55,10 +56,10 @@ export class VehicleSprite {
     let mask = this.circleMask.createGeometryMask();
     this.graphics.setMask(mask);
     this.container.add(this.graphics);
-    //this.circleMask.setInteractive(new Phaser.Geom.Circle(0, 0, radius), Phaser.Geom.Circle.Contains);
-    //this.circleMask.on('pointerup', (pointer: Pointer) => {
-    //  this.eventDispatcher.emit("showvehiclestats", this.vehicle);
-    //});
+    this.circle.setInteractive(new Phaser.Geom.Circle(0, 0, radius), Phaser.Geom.Circle.Contains);
+    this.circle.on('pointerup', (pointer: Pointer) => {
+      this.eventDispatcher.emit("showvehiclestats", this.vehicle);
+    });
 
   }
 

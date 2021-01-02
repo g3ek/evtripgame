@@ -5,6 +5,7 @@ import {CommonStyle} from "./common-style";
 import Graphics = Phaser.GameObjects.Graphics;
 import Pointer = Phaser.Input.Pointer;
 import Text = Phaser.GameObjects.Text;
+import Container = Phaser.GameObjects.Container;
 
 export class ChargingStationSprite {
 
@@ -14,6 +15,7 @@ export class ChargingStationSprite {
   private _slotsText: Text;
   private _parking: Graphics;
   private _parkingText: Text;
+  private _container: Container;
 
   constructor(chargingStation: ChargingStation, eventDispatcher: EvtripEventDispatcher) {
     this._chargingStation = chargingStation;
@@ -21,6 +23,9 @@ export class ChargingStationSprite {
   }
 
   create(scene: Scene): void {
+
+
+
     let radius: number = 40;
     this._circle = scene.add.graphics({
       fillStyle: {

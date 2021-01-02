@@ -5,6 +5,8 @@ import {Subscription} from "rxjs";
 import {CommonStyle} from "./common-style";
 import {RouteGraphics} from "./route-graphics";
 import Container = Phaser.GameObjects.Container;
+import Group = Phaser.GameObjects.Group;
+import Text = Phaser.GameObjects.Text;
 
 export class ChargingStationStats {
 
@@ -13,6 +15,7 @@ export class ChargingStationStats {
   private scene: Scene;
   private container: Container = null;
   private routeGraphics: RouteGraphics;
+  private textsGroup: Group;
 
   constructor(scene: Scene, routeGraphics: RouteGraphics, x: number, y: number) {
     this.scene = scene;
@@ -20,12 +23,11 @@ export class ChargingStationStats {
     this.container = this.scene.add.container(x, y);
     this.container.setVisible(false);
     this.container.setDepth(-1);
+    this.textsGroup = scene.add.group();
   }
 
   makeHeaders() {
-    let socHeader = this.scene.make.text({});
-    socHeader.setStyle(CommonStyle.NORMAL_STYLE);
-    socHeader.setPosition(50, 0);
+    let socHeader = this.setUpField(50, 0);
     socHeader.setText("SoC");
     this.container.add(socHeader);
   }
@@ -61,7 +63,11 @@ export class ChargingStationStats {
       s.unsubscribe();
     });
     this.subscriptions = [];
-    this.container.removeAll(true);
+    this.container.each(o => {
+      this.textsGroup.kill(o);
+    });
+    this.container.removeAll();
+    //this.container.removeAll(true);
     this.cleanUpVehicleSprites();
   }
 
@@ -101,9 +107,7 @@ export class ChargingStationStats {
   }
 
   private makeSoCField(vehicle: Vehicle, index: number) {
-    let socText = this.scene.make.text({});
-    socText.setStyle(CommonStyle.NORMAL_STYLE);
-    socText.setPosition(50, 40+(index*45));
+    let socText = this.setUpField(50, 40+(index*45))
     this.container.add(socText);
     const factor = vehicle.capacity / 100;
     let subscription = vehicle.observable.subscribe(v => {
@@ -111,5 +115,21 @@ export class ChargingStationStats {
       socText.setText('' + socPercent);
     });
     this.subscriptions.push(subscription);
+  }
+
+  private setUpField(x: number, y: number): Text {
+    let textField = this.textsGroup.getFirstDead(false);
+    if (textField === null) {
+      textField = this.scene.make.text({});
+      textField.setStyle(CommonStyle.NORMAL_STYLE);
+      this.textsGroup.add(textField);
+      this.textsGroup.kill(textField);
+      textField = this.textsGroup.getFirstDead(false);
+    } else {
+      textField.active = true; // only way to resurrect ?!
+    }
+    textField.setPosition(x, y);
+    textField.setVisible(true);
+    return textField;
   }
 }

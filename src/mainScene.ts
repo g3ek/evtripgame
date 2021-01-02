@@ -12,6 +12,7 @@ import {ChargingStationSprite} from "./charging-station-sprite";
 import {Slider} from "./slider";
 import {GameButton} from "./game-button";
 import {ChargingStationStats} from "./charging-station-stats";
+import {VehicleInfo} from "./vehicle-info";
 
 export class MainScene extends Phaser.Scene {
 
@@ -43,11 +44,13 @@ export class MainScene extends Phaser.Scene {
       this.vehicleFactory.updateNewCarTimerEvent(slider.value);
     });
 
-    let chargingStationSelection = new ChargingStationSelection("chargingstationselection", this.eventDispatcher);
+    let chargingStationSelection = new ChargingStationSelection(this.eventDispatcher);
     chargingStationSelection.create(this);
     this.chargingStationStats = new ChargingStationStats(this, this.routeGraphics, 30, 250);
     //let vehicleStats = new VehicleStats("vehiclestats");
     //vehicleStats.create(this);
+    let vehicleInfo = new VehicleInfo(this, 50, 250);
+    vehicleInfo.create();
     this.routeGraphics.render(250);
     const pauseContainer = this.add.container(30, 140);
     let pauseButton = new GameButton();
@@ -68,7 +71,7 @@ export class MainScene extends Phaser.Scene {
       chargingStationSelection.show();
     });
     this.eventDispatcher.on("showvehiclestats", (vehicle: Vehicle) => {
-      //vehicleStats.show(this.controller.vehicles, vehicle);
+      vehicleInfo.show(vehicle);
     });
     this.eventDispatcher.on("addchargingstation", (power: number, distance: number, slots: number) => {
       this.addChargingStation(power, distance, slots);

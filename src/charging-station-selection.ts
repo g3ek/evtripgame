@@ -10,16 +10,12 @@ import {GameButton} from "./game-button";
 
 export class ChargingStationSelection {
 
-
-  private key: string;
   private eventDispatcher: EvtripEventDispatcher;
   private backScreen: Graphics;
-  private distanceText: Text;
   private distanceSelected: number;
   private container: Container;
 
-  constructor(key: string, eventDispatcher: EvtripEventDispatcher) {
-    this.key = key;
+  constructor(eventDispatcher: EvtripEventDispatcher) {
     this.eventDispatcher = eventDispatcher;
   }
 
