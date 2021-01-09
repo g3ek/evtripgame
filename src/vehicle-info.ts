@@ -83,7 +83,7 @@ export class VehicleInfo {
     //speedTD.textContent = Math.floor(vehicle.mpsSpeed*3.6) + "";
     let subscription = vehicle.observable.subscribe(v => {
       const range = v.soc / v.consumption;
-      const socPercent = Math.round((v.soc / factor) * 100) / 100;
+      const socPercent = Math.round((v.soc / factor) * 10) / 10;
       this.rangeValue.setText('' + range);
       this.socValue.setText('' + socPercent);
     });

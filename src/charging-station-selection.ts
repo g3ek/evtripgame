@@ -29,7 +29,7 @@ export class ChargingStationSelection {
         color: 0xffffff
       }
     });
-    this.backScreen.fillRect(0, 0, 400, 280);
+    this.backScreen.fillRoundedRect(0, 0, 400, 280, 10);
     this.backScreen.lineStyle(5, 0x000000);
     this.backScreen.strokeRoundedRect(0, 0, 400, 280);
     this.backScreen.setDepth(1);

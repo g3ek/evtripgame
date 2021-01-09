@@ -84,8 +84,7 @@ export class MainScene extends Phaser.Scene {
       this.showChargingStationStats(chargingstation);
     });
     this.eventDispatcher.on("updatechargingstation", (chargingstation: ChargingStation) => {
-      this.chargingStationStats.update(chargingstation);
-      //vehicleStats.update(this.controller.vehicles);
+      this.chargingStationStats.updateVehicles(chargingstation);
     });
 
     document.addEventListener('visibilitychange', () => {

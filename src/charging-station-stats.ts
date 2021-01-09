@@ -1,6 +1,6 @@
 import {Scene} from "phaser";
 import {ChargingStation} from "./charging-station";
-import {Vehicle} from "./vehicle";
+import {Status, Vehicle} from "./vehicle";
 import {Subscription} from "rxjs";
 import {CommonStyle} from "./common-style";
 import {RouteGraphics} from "./route-graphics";
@@ -22,20 +22,41 @@ export class ChargingStationStats {
     this.routeGraphics = routeGraphics;
     this.container = this.scene.add.container(x, y);
     this.container.setVisible(false);
-    this.container.setDepth(-1);
     this.textsGroup = scene.add.group();
+    this.makeBackGround();
+    this.makeHeaders();
   }
 
   makeHeaders() {
-    let socHeader = this.setUpField(50, 0);
+    const socHeader = this.scene.make.text({});
+    socHeader.setStyle(CommonStyle.NORMAL_STYLE);
+    socHeader.setPosition(60, 0);
     socHeader.setText("SoC");
     this.container.add(socHeader);
+
+    const rangeHeader = this.scene.make.text({});
+    rangeHeader.setStyle(CommonStyle.NORMAL_STYLE);
+    rangeHeader.setPosition(140, 0);
+    rangeHeader.setText("Range");
+    this.container.add(rangeHeader);
+
   }
 
-  update(chargingStation: ChargingStation): void {
+  makeBackGround() {
+    let backScreen = this.scene.add.graphics({
+      fillStyle: {
+        color: 0xffffff
+      }
+    });
+    backScreen.fillRoundedRect(0, 0, 400, 1000, 10);
+    backScreen.lineStyle(5, 0x000000);
+    backScreen.strokeRoundedRect(0, 0, 400, 1000);
+    this.container.add(backScreen);
+  }
+
+  updateVehicles(chargingStation: ChargingStation): void {
     if (chargingStation === this.current) {
       this.cleanup();
-      this.makeHeaders();
       this.showVehicleStats(chargingStation.vehicles, chargingStation.waiting);
     }
   }
@@ -44,11 +65,9 @@ export class ChargingStationStats {
     if (this.current === null) {
       this.container.setVisible(true);
       this.current = chargingStation;
-      this.makeHeaders();
       this.showVehicleStats(chargingStation.vehicles, chargingStation.waiting);
     } else if (this.current !== chargingStation) {
       this.cleanup();
-      this.makeHeaders();
       this.current = chargingStation;
       this.showVehicleStats(chargingStation.vehicles, chargingStation.waiting);
     } else {
@@ -64,10 +83,10 @@ export class ChargingStationStats {
     });
     this.subscriptions = [];
     this.container.each(o => {
-      this.textsGroup.kill(o);
+      if (this.textsGroup.contains(o)) {
+        this.textsGroup.killAndHide(o);
+      }
     });
-    this.container.removeAll();
-    //this.container.removeAll(true);
     this.cleanUpVehicleSprites();
   }
 
@@ -91,7 +110,7 @@ export class ChargingStationStats {
       const vehicle = vehicles[i];
       if (vehicle != null) {
         let vehicleSprite = this.routeGraphics.findVehicleSprite(vehicle);
-        vehicleSprite.render(30, 300 + (i * 45));
+        vehicleSprite.render(60, 300 + (i * 45));
         vehicleSprite.visible(true);
         this.makeSoCField(vehicle, i);
       }
@@ -100,21 +119,32 @@ export class ChargingStationStats {
       const vehicle = waiting[i];
       let yOffset = (i+this.current.slots)
       let vehicleSprite = this.routeGraphics.findVehicleSprite(vehicle);
-      vehicleSprite.render(30, 300 + (yOffset * 45));
+      vehicleSprite.render(60, 300 + (yOffset * 45));
       vehicleSprite.visible(true);
       this.makeSoCField(vehicle, i+this.current.slots);
     }
   }
 
   private makeSoCField(vehicle: Vehicle, index: number) {
-    let socText = this.setUpField(50, 40+(index*45))
-    this.container.add(socText);
+    let socText = this.setUpField(60, 40+(index*45));
     const factor = vehicle.capacity / 100;
-    let subscription = vehicle.observable.subscribe(v => {
-      const socPercent = Math.round((v.soc / factor)*100) / 100;
+    let socPercent = Math.round((vehicle.soc / factor) * 10) / 10;
+
+    let rangeText = this.setUpField(140, 40+(index*45));
+    let range = Math.floor((vehicle.soc / vehicle.consumption)*10) / 10;
+
+    if (vehicle.status === Status.CHARGING) {
+      let subscription = vehicle.observable.subscribe(v => {
+        socPercent = Math.round((vehicle.soc / factor) * 10) / 10;
+        socText.setText('' + socPercent);
+        range = range = Math.floor((vehicle.soc / vehicle.consumption)*10) / 10;
+        rangeText.setText('' + range);
+      });
+      this.subscriptions.push(subscription);
+    } else {
       socText.setText('' + socPercent);
-    });
-    this.subscriptions.push(subscription);
+      rangeText.setText('' + range);
+    }
   }
 
   private setUpField(x: number, y: number): Text {
@@ -123,8 +153,7 @@ export class ChargingStationStats {
       textField = this.scene.make.text({});
       textField.setStyle(CommonStyle.NORMAL_STYLE);
       this.textsGroup.add(textField);
-      this.textsGroup.kill(textField);
-      textField = this.textsGroup.getFirstDead(false);
+      this.container.add(textField);
     } else {
       textField.active = true; // only way to resurrect ?!
     }
