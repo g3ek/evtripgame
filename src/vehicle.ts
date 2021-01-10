@@ -186,4 +186,13 @@ export class Vehicle {
   set chargingStrategy(value: ChargingStrategy) {
     this._chargingStrategy = value;
   }
+
+  getFormattedSoc(): number {
+    const factor = this._capacity / 100;
+    return Math.round((this._soc / factor) * 10) / 10;
+  }
+
+  getRange(): number {
+    return Math.floor((this._soc / this._consumption)*10) / 10;
+  }
 }

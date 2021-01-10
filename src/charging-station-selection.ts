@@ -42,13 +42,13 @@ export class ChargingStationSelection {
     this.container.add(title);
 
     let choseCapacity = new ChoseNumberComponent(ChargingStationFactory.CAPACITIES);
-    let containerCapacity = choseCapacity.create(this.container, scene, 110);
+    let containerCapacity = choseCapacity.create(scene, 110);
     this.container.add(containerCapacity);
     containerCapacity.setPosition(10, 70);
 
     let slotValues = [1, 2, 3, 4, 5, 6, 7, 9, 10];
     let choseSlots = new ChoseNumberComponent(slotValues);
-    let containerSlots = choseSlots.create(this.container, scene, 70);
+    let containerSlots = choseSlots.create(scene, 70);
     this.container.add(containerSlots);
     containerSlots.setPosition(10, 120);
 

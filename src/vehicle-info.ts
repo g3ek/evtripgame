@@ -2,6 +2,7 @@ import {Scene} from "phaser";
 import {Vehicle} from "./vehicle";
 import {CommonStyle} from "./common-style";
 import {Subscription} from "rxjs";
+import {RouteGraphics} from "./route-graphics";
 import Container = Phaser.GameObjects.Container;
 import Text = Phaser.GameObjects.Text;
 
@@ -14,11 +15,13 @@ export class VehicleInfo {
   private rangeValue: Text
   private subscriptions: Subscription[] = [];
   private vehicle: Vehicle = null;
+  private routeGraphics: RouteGraphics;
 
-  constructor(scene: Scene, x: number, y: number) {
+  constructor(scene: Scene, routeGraphics: RouteGraphics, x: number, y: number) {
+    this.routeGraphics = routeGraphics;
     this.scene = scene;
     this.container = scene.add.container(x, y);
-    this.container.setDepth(1);
+    this.container.setDepth(2); // above vehicle sprites
     this.container.setVisible(false);
   }
 
@@ -76,14 +79,13 @@ export class VehicleInfo {
   }
 
   showVehicle(vehicle: Vehicle) {
+    let vehicleSprite = this.routeGraphics.findVehicleSprite(vehicle);
+    vehicleSprite.select(true);
+
     this.container.setVisible(true);
-
-    const factor = vehicle.capacity / 100;
-
-    //speedTD.textContent = Math.floor(vehicle.mpsSpeed*3.6) + "";
     let subscription = vehicle.observable.subscribe(v => {
-      const range = v.soc / v.consumption;
-      const socPercent = Math.round((v.soc / factor) * 10) / 10;
+      const range = v.getRange();
+      const socPercent = v.getFormattedSoc();
       this.rangeValue.setText('' + range);
       this.socValue.setText('' + socPercent);
     });
@@ -95,5 +97,7 @@ export class VehicleInfo {
       s.unsubscribe();
     });
     this.subscriptions = [];
+    let vehicleSprite = this.routeGraphics.findVehicleSprite(this.vehicle);
+    vehicleSprite.select(false);
   }
 }

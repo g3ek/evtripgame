@@ -8,12 +8,13 @@ export class ChoseNumberComponent {
   private values: number[];
   private valueIndex: number = 0;
   private container: Container;
+  private action: () => void = null;
 
   constructor(values: number[]) {
     this.values = values;
   }
 
-  create(parent: Container, scene: Scene, length: number): Container {
+  create(scene: Scene, length: number, prefix: string = '', addToScene?: boolean): Container {
     let config = {
       fillStyle: {
         color: 0x909090,
@@ -29,9 +30,13 @@ export class ChoseNumberComponent {
     let field = scene.make.text(CommonStyle.NORMAL_STYLE);
     field.x = 25;
     field.y = 0;
-    field.setText(this.values[0]+"");
+    field.setText(prefix+this.values[0]+"");
     field.setStyle(CommonStyle.NORMAL_STYLE); // need to set, probably a bug
-    this.container = scene.make.container({});
+    if (addToScene) {
+      this.container = scene.add.container();
+    } else {
+      this.container = scene.make.container({});
+    }
     this.container.add(leftarrow);
     this.container.add(field);
     this.container.add(rightarrow);
@@ -40,13 +45,19 @@ export class ChoseNumberComponent {
     leftarrow.on('pointerup', () => {
       if (this.valueIndex > 0) {
         this.valueIndex--;
-        field.setText(""+this.values[this.valueIndex]);
+        field.setText(prefix+this.values[this.valueIndex]);
+        if (this.action !== null) {
+          this.action();
+        }
       }
     });
     rightarrow.on('pointerup', () => {
       if (this.valueIndex < (this.values.length-1)) {
         this.valueIndex++;
-        field.setText(""+this.values[this.valueIndex]);
+        field.setText(prefix+this.values[this.valueIndex]);
+        if (this.action !== null) {
+          this.action();
+        }
       }
     });
     return this.container;
@@ -70,5 +81,9 @@ export class ChoseNumberComponent {
 
   getValue(): number {
     return this.values[this.valueIndex];
+  }
+
+  setAction(action: () => void) {
+    this.action = action;
   }
 }

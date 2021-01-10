@@ -9,10 +9,10 @@ import {ChargingStationSelection} from "./charging-station-selection";
 import {ChargingStationFactory} from "./charging-station-factory";
 import {ChargingStation} from "./charging-station";
 import {ChargingStationSprite} from "./charging-station-sprite";
-import {Slider} from "./slider";
 import {GameButton} from "./game-button";
 import {ChargingStationStats} from "./charging-station-stats";
 import {VehicleInfo} from "./vehicle-info";
+import {ChoseNumberComponent} from "./chose-number-component";
 
 export class MainScene extends Phaser.Scene {
 
@@ -38,10 +38,13 @@ export class MainScene extends Phaser.Scene {
     clock.create();
     this.vehicleFactory = new VehicleFactory(clock, this, this.eventDispatcher);
     this.controller = new Controller(this.routeGraphics, clock, this.eventDispatcher);
-    let slider = new Slider(this, 30, 100, 40);
-    slider.setAction(() => {
-      clock.timeScale = slider.value;
-      this.vehicleFactory.updateNewCarTimerEvent(slider.value);
+    let timeFactorChooser = new ChoseNumberComponent([1, 5, 10, 15, 20, 25, 35, 40]);
+    let timeChooserContainer = timeFactorChooser.create(this, 90, 'x', true);
+    timeChooserContainer.setPosition(30, 80);
+    timeFactorChooser.setAction(() => {
+      let value = timeFactorChooser.getValue();
+      clock.timeScale = value;
+      this.vehicleFactory.updateNewCarTimerEvent(value);
     });
 
     let chargingStationSelection = new ChargingStationSelection(this.eventDispatcher);
@@ -49,7 +52,7 @@ export class MainScene extends Phaser.Scene {
     this.chargingStationStats = new ChargingStationStats(this, this.routeGraphics, 30, 250);
     //let vehicleStats = new VehicleStats("vehiclestats");
     //vehicleStats.create(this);
-    let vehicleInfo = new VehicleInfo(this, 50, 250);
+    let vehicleInfo = new VehicleInfo(this, this.routeGraphics, 50, 250);
     vehicleInfo.create();
     this.routeGraphics.render(250);
     const pauseContainer = this.add.container(30, 140);
@@ -104,6 +107,7 @@ export class MainScene extends Phaser.Scene {
 
   private addVehicle(vehicle): void {
     const container = this.add.container();
+    container.setDepth(1);
     let vehicleSprite = new VehicleSprite(vehicle, this.eventDispatcher, container);
     vehicleSprite.create(this);
     this.controller.addVehicle(vehicle);

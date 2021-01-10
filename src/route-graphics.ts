@@ -15,7 +15,7 @@ export class RouteGraphics {
 
   private scene: Phaser.Scene;
   private margin: number = 50;
-  private marginX: number = 60;
+  private marginX: number = 80;
   private roadWidth: number = 10;
   private distance: number;
   private roadLengthPixels: number;
@@ -98,9 +98,18 @@ export class RouteGraphics {
     let km25 = RouteGraphics.DISTANCE_METRES / 25000;
     for(let i=0; i <= km25; i++) {
       let y = (25000 * i) / this.distanceToPixelsFactor;
-      this.scene.add.text(this.x+15, y+this.margin, ""+(25*i)+"km", CommonStyle.NORMAL_STYLE)
+      this.scene.add.text(this.x+25, y+this.margin, ""+(25*i)+"km", CommonStyle.NORMAL_STYLE)
         .setScale(0.5)
         .setOrigin(0, 0.5);
+      let markerLine = this.scene.add.graphics({
+        lineStyle: {
+          color: 0x0a0ae0,
+          alpha: 1,
+          width: 2
+        }
+      });
+      markerLine.lineBetween(this.x, y+this.margin, this.x+20, y+this.margin);
+
     }
   }
 

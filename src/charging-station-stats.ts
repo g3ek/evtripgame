@@ -127,17 +127,15 @@ export class ChargingStationStats {
 
   private makeSoCField(vehicle: Vehicle, index: number) {
     let socText = this.setUpField(60, 40+(index*45));
-    const factor = vehicle.capacity / 100;
-    let socPercent = Math.round((vehicle.soc / factor) * 10) / 10;
-
+    let socPercent = vehicle.getFormattedSoc();
     let rangeText = this.setUpField(140, 40+(index*45));
-    let range = Math.floor((vehicle.soc / vehicle.consumption)*10) / 10;
+    let range = vehicle.getRange();
 
     if (vehicle.status === Status.CHARGING) {
       let subscription = vehicle.observable.subscribe(v => {
-        socPercent = Math.round((vehicle.soc / factor) * 10) / 10;
+        socPercent = v.getFormattedSoc();
         socText.setText('' + socPercent);
-        range = range = Math.floor((vehicle.soc / vehicle.consumption)*10) / 10;
+        range = v.getRange();
         rangeText.setText('' + range);
       });
       this.subscriptions.push(subscription);

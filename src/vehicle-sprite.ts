@@ -14,6 +14,7 @@ export class VehicleSprite {
   private circle: Graphics;
   private static texturecreated: boolean = false;
   private container: Container;
+  private radius: number;
 
   constructor(vehicle: Vehicle, eventDispatcher: EvtripEventDispatcher, container: Container) {
     this.vehicle = vehicle;
@@ -22,14 +23,14 @@ export class VehicleSprite {
   }
 
   create(scene: Phaser.Scene): void {
-    let radius: number = 20;
+    this.radius = 20;
     this.circle = scene.make.graphics({
       fillStyle: {
         color: 0xf0f0f0,
         alpha: 1
       }
     });
-    this.circle.fillCircle(0, 0, radius);
+    this.circle.fillCircle(0, 0, this.radius);
     this.circle.lineStyle(2, 0x000000, 1);
     this.circle.strokeCircle(0, 0, 21);
     this.container.add(this.circle);
@@ -52,11 +53,11 @@ export class VehicleSprite {
         alpha: 1
       }
     });
-    this.circleMask.fillCircle(0, 0, radius);
+    this.circleMask.fillCircle(0, 0, this.radius);
     let mask = this.circleMask.createGeometryMask();
     this.graphics.setMask(mask);
     this.container.add(this.graphics);
-    this.circle.setInteractive(new Phaser.Geom.Circle(0, 0, radius), Phaser.Geom.Circle.Contains);
+    this.circle.setInteractive(new Phaser.Geom.Circle(0, 0, this.radius), Phaser.Geom.Circle.Contains);
     this.circle.on('pointerup', (pointer: Pointer) => {
       this.eventDispatcher.emit("showvehiclestats", this.vehicle);
     });
@@ -73,7 +74,7 @@ export class VehicleSprite {
     const perfectFactor = this.vehicle.capacity / 100;
     const yOffset = soc / factor;
     const percent = soc / perfectFactor;
-    this.graphics.y = 40-yOffset;
+    this.graphics.y = 40 - yOffset;
     if (percent >= 20) {
       this.graphics.setTint(0x00ff00);
     } else if (percent >= 10) {
@@ -81,12 +82,23 @@ export class VehicleSprite {
     } else {
       this.graphics.setTint(0xff0000);
     }
-   }
+  }
+
+  select(on: boolean): void {
+    this.circle.clear();
+    this.circle.fillStyle(0xf0f0f0);
+    this.circle.fillCircle(0, 0, this.radius);
+    if (on) {
+      this.circle.lineStyle(4, 0x000000);
+      this.circle.strokeCircle(0, 0, 22);
+    } else {
+      this.circle.lineStyle(2, 0x000000);
+      this.circle.strokeCircle(0, 0, 21);
+    }
+  }
 
   visible(on: boolean) {
     this.container.setVisible(on);
-    // this.circle.setVisible(on);
-    // this.graphics.setVisible(on);
   }
 
   getVehicle(): Vehicle {
