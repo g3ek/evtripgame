@@ -195,4 +195,8 @@ export class Vehicle {
   getRange(): number {
     return Math.floor((this._soc / this._consumption)*10) / 10;
   }
+
+  getFormattedConsumption(): number {
+    return Math.round(this._consumption);
+  }
 }

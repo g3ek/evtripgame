@@ -1,5 +1,5 @@
 import {Scene} from "phaser";
-import {Vehicle} from "./vehicle";
+import {Status, Vehicle} from "./vehicle";
 import {CommonStyle} from "./common-style";
 import {Subscription} from "rxjs";
 import {RouteGraphics} from "./route-graphics";
@@ -11,8 +11,11 @@ export class VehicleInfo {
   private container: Container;
   private scene: Scene;
   private title: Text;
-  private socValue: Text
-  private rangeValue: Text
+  private socValue: Text;
+  private rangeValue: Text;
+  private capacityValue: Text;
+  private consumptionValue: Text;
+  private strategyValue: Text;
   private subscriptions: Subscription[] = [];
   private vehicle: Vehicle = null;
   private routeGraphics: RouteGraphics;
@@ -31,7 +34,7 @@ export class VehicleInfo {
         color: 0xffffff
       }
     });
-    backScreen.fillRect(0, 0, 400, 280);
+    backScreen.fillRoundedRect(0, 0, 400, 280, 10);
     backScreen.lineStyle(5, 0x000000);
     backScreen.strokeRoundedRect(0, 0, 400, 280);
     backScreen.setDepth(1);
@@ -45,22 +48,46 @@ export class VehicleInfo {
     const socLabel = this.scene.make.text({});
     socLabel.setPosition(10, 30);
     socLabel.setStyle(CommonStyle.NORMAL_STYLE);
+    socLabel.setText('SoC');
     this.container.add(socLabel);
 
     this.socValue = this.scene.make.text({});
-    this.socValue.setPosition(140, 30);
+    this.socValue.setPosition(200, 30);
     this.socValue.setStyle(CommonStyle.NORMAL_STYLE);
     this.container.add(this.socValue);
 
     const rangeLabel = this.scene.make.text({});
     rangeLabel.setPosition(10, 60);
     rangeLabel.setStyle(CommonStyle.NORMAL_STYLE);
+    rangeLabel.setText('Range');
     this.container.add(rangeLabel);
 
     this.rangeValue = this.scene.make.text({});
-    this.rangeValue.setPosition(140, 60);
+    this.rangeValue.setPosition(200, 60);
     this.rangeValue.setStyle(CommonStyle.NORMAL_STYLE);
     this.container.add(this.rangeValue);
+
+    const capacityLabel = this.scene.make.text({});
+    capacityLabel.setPosition(10, 90);
+    capacityLabel.setStyle(CommonStyle.NORMAL_STYLE);
+    capacityLabel.setText('Capacity');
+    this.container.add(capacityLabel);
+
+    this.capacityValue = this.scene.make.text({});
+    this.capacityValue.setPosition(200, 90);
+    this.capacityValue.setStyle(CommonStyle.NORMAL_STYLE);
+    this.container.add(this.capacityValue);
+
+    const consumptionLabel = this.scene.make.text({});
+    consumptionLabel.setPosition(10, 120);
+    consumptionLabel.setStyle(CommonStyle.NORMAL_STYLE);
+    consumptionLabel.setText('Consumption');
+    this.container.add(consumptionLabel);
+
+    this.consumptionValue = this.scene.make.text({});
+    this.consumptionValue.setPosition(200, 120);
+    this.consumptionValue.setStyle(CommonStyle.NORMAL_STYLE);
+    this.container.add(this.consumptionValue);
   }
 
   show(vehicle: Vehicle): void {
@@ -81,15 +108,22 @@ export class VehicleInfo {
   showVehicle(vehicle: Vehicle) {
     let vehicleSprite = this.routeGraphics.findVehicleSprite(vehicle);
     vehicleSprite.select(true);
-
+    let range = vehicle.getRange();
+    let socPercent = vehicle.getFormattedSoc();
+    this.capacityValue.setText('' + (vehicle.capacity / 1000));
+    this.rangeValue.setText('' + range);
+    this.socValue.setText('' + socPercent);
+    this.consumptionValue.setText('' + vehicle.getFormattedConsumption());
     this.container.setVisible(true);
-    let subscription = vehicle.observable.subscribe(v => {
-      const range = v.getRange();
-      const socPercent = v.getFormattedSoc();
-      this.rangeValue.setText('' + range);
-      this.socValue.setText('' + socPercent);
-    });
-    this.subscriptions.push(subscription);
+    if (vehicle.status === Status.CHARGING || vehicle.status === Status.MOVING) {
+      let subscription = vehicle.observable.subscribe(v => {
+        range = v.getRange();
+        socPercent = v.getFormattedSoc();
+        this.rangeValue.setText('' + range);
+        this.socValue.setText('' + socPercent);
+      });
+      this.subscriptions.push(subscription);
+    }
   }
 
   private cleanup() {

@@ -4,6 +4,7 @@ import {Status, Vehicle} from "./vehicle";
 import {Subscription} from "rxjs";
 import {CommonStyle} from "./common-style";
 import {RouteGraphics} from "./route-graphics";
+import {AbstractChargingStrategy} from "./charging-strategy";
 import Container = Phaser.GameObjects.Container;
 import Group = Phaser.GameObjects.Group;
 import Text = Phaser.GameObjects.Text;
@@ -112,7 +113,7 @@ export class ChargingStationStats {
         let vehicleSprite = this.routeGraphics.findVehicleSprite(vehicle);
         vehicleSprite.render(60, 300 + (i * 45));
         vehicleSprite.visible(true);
-        this.makeSoCField(vehicle, i);
+        this.makeFields(vehicle, i);
       }
     }
     for(let i=0; i < waiting.length; i++) {
@@ -121,15 +122,18 @@ export class ChargingStationStats {
       let vehicleSprite = this.routeGraphics.findVehicleSprite(vehicle);
       vehicleSprite.render(60, 300 + (yOffset * 45));
       vehicleSprite.visible(true);
-      this.makeSoCField(vehicle, i+this.current.slots);
+      this.makeFields(vehicle, i+this.current.slots);
     }
   }
 
-  private makeSoCField(vehicle: Vehicle, index: number) {
-    let socText = this.setUpField(60, 40+(index*45));
+  private makeFields(vehicle: Vehicle, index: number) {
+    const socText = this.setUpField(60, 40+(index*45));
+    const rangeText = this.setUpField(140, 40+(index*45));
+    const strategyText = this.setUpField(210, 40+(index*45));
     let socPercent = vehicle.getFormattedSoc();
-    let rangeText = this.setUpField(140, 40+(index*45));
     let range = vehicle.getRange();
+    const strategy = AbstractChargingStrategy.getLabel(vehicle.chargingStrategy.type());
+    strategyText.setText(strategy);
 
     if (vehicle.status === Status.CHARGING) {
       let subscription = vehicle.observable.subscribe(v => {
