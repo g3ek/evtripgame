@@ -11,9 +11,6 @@ const config: GameConfig = {
   parent: "game",
   backgroundColor: "eaeafa",
   scene: [MainScene],
-  dom: {
-    createContainer: true
-  },
   scale: {
     parent: "game",
     mode: ScaleModes.FIT,

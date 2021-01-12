@@ -1,20 +1,19 @@
 import {Vehicle} from "./vehicle";
 import {EvtripEventDispatcher} from "./evtrip-event-dispatcher";
+import {CommonStyle} from "./common-style";
 import Graphics = Phaser.GameObjects.Graphics;
-import Image = Phaser.GameObjects.Image;
 import Container = Phaser.GameObjects.Container;
 import Pointer = Phaser.Input.Pointer;
+import Text = Phaser.GameObjects.Text;
 
 export class VehicleSprite {
 
   private vehicle: Vehicle;
-  private circleMask: Graphics;
   private eventDispatcher: EvtripEventDispatcher;
-  private graphics: Image;
   private circle: Graphics;
-  private static texturecreated: boolean = false;
   private container: Container;
   private radius: number;
+  private socText: Text;
 
   constructor(vehicle: Vehicle, eventDispatcher: EvtripEventDispatcher, container: Container) {
     this.vehicle = vehicle;
@@ -32,31 +31,16 @@ export class VehicleSprite {
     });
     this.circle.fillCircle(0, 0, this.radius);
     this.circle.lineStyle(2, 0x000000, 1);
-    this.circle.strokeCircle(0, 0, 21);
+    this.circle.strokeCircle(0, 0, this.radius+1);
     this.container.add(this.circle);
 
-    if (!VehicleSprite.texturecreated) {
-      VehicleSprite.texturecreated = true;
-      let spriteGfx = scene.add.graphics({
-        fillStyle: {
-          color: 0xffffff
-        }
-      });
-      spriteGfx.fillRect(0, 0, 40, 40);
-      spriteGfx.generateTexture('vst', 40, 40);
-      spriteGfx.destroy();
-    }
-    this.graphics = scene.add.sprite(0, 0, 'vst');
-    this.circleMask = scene.make.graphics({
-      fillStyle: {
-        color: 0xffffff,
-        alpha: 1
-      }
-    });
-    this.circleMask.fillCircle(0, 0, this.radius);
-    let mask = this.circleMask.createGeometryMask();
-    this.graphics.setMask(mask);
-    this.container.add(this.graphics);
+    this.socText = scene.make.text({});
+    this.socText.setStyle(CommonStyle.NORMAL_STYLE);
+    this.socText.setStroke('#000', 1);
+    this.socText.setOrigin(0.5, 0.5);
+    this.socText.setScale(0.75);
+    this.container.add(this.socText);
+
     this.circle.setInteractive(new Phaser.Geom.Circle(0, 0, this.radius), Phaser.Geom.Circle.Contains);
     this.circle.on('pointerup', (pointer: Pointer) => {
       this.eventDispatcher.emit("showvehiclestats", this.vehicle);
@@ -66,21 +50,20 @@ export class VehicleSprite {
 
   render(x: number, y: number): void {
     this.container.setPosition(x, y);
-    // need to move the mask, adding it to container doesn't work :-(
-    this.circleMask.x = x;
-    this.circleMask.y = y;
+    this.updateSoc();
+  }
+
+  updateSoc() {
     const soc = this.vehicle.soc;
-    const factor = this.vehicle.capacity / 40;
-    const perfectFactor = this.vehicle.capacity / 100;
-    const yOffset = soc / factor;
-    const percent = soc / perfectFactor;
-    this.graphics.y = 40 - yOffset;
+    const factor = this.vehicle.capacity / 100;
+    const percent = Math.floor(soc / factor);
+    this.socText.setText(''+percent);
     if (percent >= 20) {
-      this.graphics.setTint(0x00ff00);
+      this.socText.setColor('#00ff00');
     } else if (percent >= 10) {
-      this.graphics.setTint(0xffff00);
+      this.socText.setColor('#ffa500');
     } else {
-      this.graphics.setTint(0xff0000);
+      this.socText.setColor('#ff0000');
     }
   }
 
@@ -90,10 +73,10 @@ export class VehicleSprite {
     this.circle.fillCircle(0, 0, this.radius);
     if (on) {
       this.circle.lineStyle(4, 0x000000);
-      this.circle.strokeCircle(0, 0, 22);
+      this.circle.strokeCircle(0, 0, this.radius+2);
     } else {
       this.circle.lineStyle(2, 0x000000);
-      this.circle.strokeCircle(0, 0, 21);
+      this.circle.strokeCircle(0, 0, this.radius+1);
     }
   }
 
@@ -107,8 +90,6 @@ export class VehicleSprite {
 
   destroy(): void {
     this.container.destroy();
-    this.circleMask.destroy();
     this.circle.destroy();
-    this.graphics.destroy();
   }
 }

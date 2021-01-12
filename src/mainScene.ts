@@ -87,6 +87,10 @@ export class MainScene extends Phaser.Scene {
     this.eventDispatcher.on("updatechargingstation", (chargingstation: ChargingStation) => {
       this.chargingStationStats.updateVehicles(chargingstation);
     });
+    this.eventDispatcher.on("vehiclefinished", (vehicle: Vehicle) => {
+      vehicleInfo.hide(vehicle);
+    });
+
 
     document.addEventListener('visibilitychange', () => {
       if (document.hidden && !this.time.paused) {

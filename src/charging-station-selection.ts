@@ -21,7 +21,7 @@ export class ChargingStationSelection {
 
   create(scene: Scene): void {
     this.container = scene.add.container(30, 200);
-    this.container.setDepth(1);
+    this.container.setDepth(2);
     this.container.setVisible(false);
 
     this.backScreen = scene.make.graphics({

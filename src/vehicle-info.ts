@@ -24,7 +24,7 @@ export class VehicleInfo {
     this.routeGraphics = routeGraphics;
     this.scene = scene;
     this.container = scene.add.container(x, y);
-    this.container.setDepth(2); // above vehicle sprites
+    this.container.setDepth(3); // above vehicle sprites
     this.container.setVisible(false);
   }
 
@@ -133,5 +133,13 @@ export class VehicleInfo {
     this.subscriptions = [];
     let vehicleSprite = this.routeGraphics.findVehicleSprite(this.vehicle);
     vehicleSprite.select(false);
+  }
+
+  hide(vehicle: Vehicle) {
+    if (this.vehicle === vehicle) {
+      this.cleanup();
+      this.vehicle = null;
+      this.container.setVisible(false);
+    }
   }
 }
