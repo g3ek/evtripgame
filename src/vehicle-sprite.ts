@@ -1,6 +1,8 @@
 import {Vehicle} from "./vehicle";
 import {EvtripEventDispatcher} from "./evtrip-event-dispatcher";
 import {CommonStyle} from "./common-style";
+import {Scene} from "phaser";
+import {Blinker, BlinkTime} from "./blinker";
 import Graphics = Phaser.GameObjects.Graphics;
 import Container = Phaser.GameObjects.Container;
 import Pointer = Phaser.Input.Pointer;
@@ -14,6 +16,8 @@ export class VehicleSprite {
   private container: Container;
   private radius: number;
   private socText: Text;
+  private scene: Scene;
+  private blinker: Blinker = null;
 
   constructor(vehicle: Vehicle, eventDispatcher: EvtripEventDispatcher, container: Container) {
     this.vehicle = vehicle;
@@ -22,6 +26,7 @@ export class VehicleSprite {
   }
 
   create(scene: Phaser.Scene): void {
+    this.scene = scene;
     this.radius = 20;
     this.circle = scene.make.graphics({
       fillStyle: {
@@ -91,5 +96,18 @@ export class VehicleSprite {
   destroy(): void {
     this.container.destroy();
     this.circle.destroy();
+  }
+
+  setupWaitingTimeout(blinkTime: BlinkTime) {
+    if (this.blinker === null) {
+      this.blinker = new Blinker(this.scene, this.circle);
+    }
+    this.blinker.createUpdateTimeline(this.circle, blinkTime);
+  }
+
+  stopBlinker() {
+    if (this.blinker !== null) {
+      this.blinker.stop();
+    }
   }
 }

@@ -49,7 +49,7 @@ export class MainScene extends Phaser.Scene {
 
     let chargingStationSelection = new ChargingStationSelection(this.eventDispatcher);
     chargingStationSelection.create(this);
-    this.chargingStationStats = new ChargingStationStats(this, this.routeGraphics, 30, 250);
+    this.chargingStationStats = new ChargingStationStats(this, this.routeGraphics, 30, 250, clock);
     let vehicleInfo = new VehicleInfo(this, this.routeGraphics, 70, 230);
     vehicleInfo.create();
     this.routeGraphics.render(250);

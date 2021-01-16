@@ -30,7 +30,7 @@ export class Vehicle {
   private _observable: Observable<Vehicle>
   private _totalTime: number = 0;
   private _latestChargingStation: ChargingStation;
-  private _waitTime: number;
+  private _waitTime: number = 0;
   private _totalWaitTime: number;
   private _chargingStrategy: ChargingStrategy;
 

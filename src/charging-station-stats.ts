@@ -5,6 +5,8 @@ import {Subscription} from "rxjs";
 import {CommonStyle} from "./common-style";
 import {RouteGraphics} from "./route-graphics";
 import {AbstractChargingStrategy} from "./charging-strategy";
+import {Clock} from "./clock";
+import {BlinkTime} from "./blinker";
 import Container = Phaser.GameObjects.Container;
 import Group = Phaser.GameObjects.Group;
 import Text = Phaser.GameObjects.Text;
@@ -17,10 +19,12 @@ export class ChargingStationStats {
   private container: Container = null;
   private routeGraphics: RouteGraphics;
   private textsGroup: Group;
+  private clock: Clock;
 
-  constructor(scene: Scene, routeGraphics: RouteGraphics, x: number, y: number) {
+  constructor(scene: Scene, routeGraphics: RouteGraphics, x: number, y: number, clock: Clock) {
     this.scene = scene;
     this.routeGraphics = routeGraphics;
+    this.clock = clock;
     this.container = this.scene.add.container(x, y);
     this.container.setVisible(false);
     this.textsGroup = scene.add.group();
@@ -68,15 +72,21 @@ export class ChargingStationStats {
   }
 
   show(chargingStation: ChargingStation): void {
+    let chargingStationSprite = this.routeGraphics.findChargingStationSprite(chargingStation);
     if (this.current === null) {
+      chargingStationSprite.select(true);
       this.container.setVisible(true);
       this.current = chargingStation;
       this.showVehicleStats(chargingStation.vehicles, chargingStation.waiting);
     } else if (this.current !== chargingStation) {
+      let currentCSSprite = this.routeGraphics.findChargingStationSprite(this.current);
+      currentCSSprite.select(false);
+      chargingStationSprite.select(true);
       this.cleanup();
       this.current = chargingStation;
       this.showVehicleStats(chargingStation.vehicles, chargingStation.waiting);
     } else {
+      chargingStationSprite.select(false);
       this.cleanup();
       this.current = null;
       this.container.setVisible(false);
@@ -143,6 +153,20 @@ export class ChargingStationStats {
         vehicleSprite.updateSoc();
         range = v.getRange();
         rangeText.setText('' + range);
+      });
+      this.subscriptions.push(subscription);
+    } else if (vehicle.status === Status.WAITING) {
+      let subscription = vehicle.observable.subscribe(v => {
+        let delta = this.clock.time - v.waitTime;
+        if (delta > (10*60*1000) && delta < (20*60*1000)) { // 10 minutes and we're getting impatient
+          vehicleSprite.setupWaitingTimeout(BlinkTime.FIRST);
+        } else if (delta > (20*60*1000) && delta < (30*60*1000)) { // 20 minutes and it's getting aggravating
+          vehicleSprite.setupWaitingTimeout(BlinkTime.SECOND);
+        } else if (delta > (30*60*1000) && delta < (45*60*1000)) { // 30 minutes, getting fed up
+          vehicleSprite.setupWaitingTimeout(BlinkTime.THIRD);
+        } else if (delta > (45*60*1000)) { // 40 minutes, fail
+          // todo game over
+        }
       });
       this.subscriptions.push(subscription);
     } else {

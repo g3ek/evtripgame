@@ -163,6 +163,7 @@ export class RouteGraphics {
     const chargingStationSprite = this.findChargingStationSprite(chargingStation);
     chargingStationSprite.renderVehicle();
     vehicleSprite.visible(false);
+    vehicleSprite.stopBlinker();
   }
 
   renderMovingVehicle(vehicle: Vehicle, chargingStation: ChargingStation) {
@@ -179,7 +180,5 @@ export class RouteGraphics {
     const chargingStationSprite = this.findChargingStationSprite(chargingStation);
     vehicleSprite.visible(false);
     chargingStationSprite.renderVehicle();
-    //vehicleSprite.sprite().y = chargingStationSprite.circle.y;
-    //vehicleSprite.sprite().x = this.x - (chargingStation.slots*40) - 10 - (chargingStation.waiting.length * 20);
   }
 }

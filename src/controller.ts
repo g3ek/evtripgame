@@ -32,7 +32,7 @@ export class Controller {
     });
     this.chargingStations.forEach(cs => {
       if (cs.vehicles.length > 0) {
-        this.chargeVehicles(cs);
+        this.updateChargingStationVehicles(cs);
       }
     })
   }
@@ -75,6 +75,7 @@ export class Controller {
       if (doNeedToChargeHere && chargingStation !== vehicle.latestChargingStation) {
         if (chargingStation.isFull()) {
           vehicle.status = Status.WAITING;
+          vehicle.waitTime = this.clock.time;
           chargingStation.addWaiting(vehicle);
           this.routeGraphics.renderWaitingVehicle(vehicle, chargingStation);
         } else {
@@ -94,11 +95,13 @@ export class Controller {
     vehicle.status = Status.CHARGING;
     vehicle.startDistance = chargingStation.locationInMeters;
     vehicle.distance = 0;
+    vehicle.totalWaitTime += (this.clock.time - vehicle.waitTime);
+    vehicle.waitTime = 0;
     chargingStation.add(vehicle);
     this.afterChargingOrMoving(vehicle);
   }
 
-  private chargeVehicles(chargingStation: ChargingStation) {
+  private updateChargingStationVehicles(chargingStation: ChargingStation) {
     for (let i = 0; i < chargingStation.vehicles.length; i++) {
       const vehicle = chargingStation.vehicles[i];
       if (vehicle !== null) {

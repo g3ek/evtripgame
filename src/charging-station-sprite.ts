@@ -5,6 +5,7 @@ import {CommonStyle} from "./common-style";
 import Pointer = Phaser.Input.Pointer;
 import Text = Phaser.GameObjects.Text;
 import Container = Phaser.GameObjects.Container;
+import Graphics = Phaser.GameObjects.Graphics;
 
 export class ChargingStationSprite {
 
@@ -13,6 +14,7 @@ export class ChargingStationSprite {
   private _slotsText: Text;
   private _parkingText: Text;
   private _container: Container;
+  private _graphics: Graphics;
 
   constructor(chargingStation: ChargingStation, eventDispatcher: EvtripEventDispatcher) {
     this._chargingStation = chargingStation;
@@ -21,20 +23,10 @@ export class ChargingStationSprite {
 
   create(scene: Scene): void {
     this._container = scene.add.container();
-    const graphics = scene.make.graphics({});
-    graphics.fillStyle(0x0aa0a0);
-    graphics.beginPath();
-    graphics.moveTo(0, 0);
-    graphics.lineTo(130, 0);
-    graphics.lineTo(130, 15);
-    graphics.lineTo(150, 15);
-    graphics.lineTo(150, 25);
-    graphics.lineTo(130, 25);
-    graphics.lineTo(130, 40);
-    graphics.lineTo(0, 40);
-    graphics.moveTo(0, 0);
-    graphics.fillPath();
-    this._container.add(graphics);
+    this._graphics = scene.make.graphics({});
+    this._graphics.fillStyle(0x0aa0a0);
+    this.createPath();
+    this._container.add(this._graphics);
 
     this._slotsText = scene.make.text({});
     this._slotsText.setOrigin(0.5, 0.5);
@@ -50,8 +42,8 @@ export class ChargingStationSprite {
     this._parkingText.setPosition(20, 20);
     this._container.add(this._parkingText);
 
-    graphics.setInteractive(new Phaser.Geom.Rectangle(0, 0, 130, 40), Phaser.Geom.Rectangle.Contains);
-    graphics.on('pointerup', (pointer: Pointer) => {
+    this._graphics.setInteractive(new Phaser.Geom.Rectangle(0, 0, 130, 40), Phaser.Geom.Rectangle.Contains);
+    this._graphics.on('pointerup', (pointer: Pointer) => {
       this._eventDispatcher.emit("showchargingstationstats", this.chargingStation);
     });
   }
@@ -66,8 +58,32 @@ export class ChargingStationSprite {
     return this._chargingStation;
   }
 
+  select(on: boolean): void {
+    this._graphics.clear();
+    this._graphics.fillStyle(0x0aa0a0);
+    this._graphics.lineStyle(8, 0x000000);
+    this.createPath();
+    if (on) {
+      this._graphics.strokePath();
+    }
+  }
+
   renderVehicle() {
     this._slotsText.setText(this.chargingStation.occupied()+"/"+this.chargingStation.slots);
     this._parkingText.setText(""+this.chargingStation.waiting.length);
+  }
+
+  private createPath() {
+    this._graphics.beginPath();
+    this._graphics.moveTo(0, 0);
+    this._graphics.lineTo(130, 0);
+    this._graphics.lineTo(130, 15);
+    this._graphics.lineTo(150, 15);
+    this._graphics.lineTo(150, 25);
+    this._graphics.lineTo(130, 25);
+    this._graphics.lineTo(130, 40);
+    this._graphics.lineTo(0, 40);
+    this._graphics.closePath()
+    this._graphics.fillPath();
   }
 }
