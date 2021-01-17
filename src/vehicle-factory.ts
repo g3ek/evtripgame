@@ -28,13 +28,14 @@ export class VehicleFactory {
     const mpsSpeed = kph / 3.6; // convert kph to mps
     let index = kph / 90;
     index = Math.pow(index, 2); // square 2 for air resistance
-    let consumption = (Phaser.Math.Between(150, 250));
+    let consumption = Phaser.Math.Between(150, 250);
     consumption *= index;
     const directionup = Math.random()*2 < 1;
     const status = Status.MOVING;
     const capacity: number = VehicleFactory.CAPACITIES[Math.floor(Math.random()*VehicleFactory.CAPACITIES.length)];
     const startSOC = Phaser.Math.Between(10000, capacity); // minimum 10kWh soc
     const chargingStrategy = ChargingStrategyFactory.createRandomStrategy();
+    const throttleAtSoC = Phaser.Math.Between(capacity*0.6, capacity*0.9); // throttle charging between 60% and 90%
 
     const vehicle = new Vehicle();
     vehicle.id = this.createUniqueID();
@@ -47,12 +48,13 @@ export class VehicleFactory {
     vehicle.directionup = directionup;
     vehicle.startTime = this.clock.time;
     vehicle.chargingStrategy = chargingStrategy;
+    vehicle.throttleThreshold = throttleAtSoC;
     return vehicle;
   }
 
   private createNewCarTimerEvent(scene: Scene) {
     this.newCarTimerEvent = scene.time.addEvent({
-      delay: Phaser.Math.Between(120000, 360000),
+      delay: Phaser.Math.Between(120000, 660000),
       loop: true,
       callback: () => {
         let vehicle = this.create();

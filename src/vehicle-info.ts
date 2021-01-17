@@ -3,6 +3,7 @@ import {Status, Vehicle} from "./vehicle";
 import {CommonStyle} from "./common-style";
 import {Subscription} from "rxjs";
 import {RouteGraphics} from "./route-graphics";
+import {AbstractChargingStrategy} from "./charging-strategy";
 import Container = Phaser.GameObjects.Container;
 import Text = Phaser.GameObjects.Text;
 
@@ -16,6 +17,7 @@ export class VehicleInfo {
   private capacityValue: Text;
   private consumptionValue: Text;
   private strategyValue: Text;
+  private thresholdValue: Text;
   private subscriptions: Subscription[] = [];
   private vehicle: Vehicle = null;
   private routeGraphics: RouteGraphics;
@@ -88,6 +90,28 @@ export class VehicleInfo {
     this.consumptionValue.setPosition(200, 120);
     this.consumptionValue.setStyle(CommonStyle.NORMAL_STYLE);
     this.container.add(this.consumptionValue);
+
+    const thresholdLabel = this.scene.make.text({});
+    thresholdLabel.setPosition(10, 150);
+    thresholdLabel.setStyle(CommonStyle.NORMAL_STYLE);
+    thresholdLabel.setText('Threshold');
+    this.container.add(thresholdLabel);
+
+    this.thresholdValue = this.scene.make.text({});
+    this.thresholdValue.setPosition(200, 150);
+    this.thresholdValue.setStyle(CommonStyle.NORMAL_STYLE);
+    this.container.add(this.thresholdValue);
+
+    const strategyLabel = this.scene.make.text({});
+    strategyLabel.setPosition(10, 180);
+    strategyLabel.setStyle(CommonStyle.NORMAL_STYLE);
+    strategyLabel.setText('Strategy');
+    this.container.add(strategyLabel);
+
+    this.strategyValue = this.scene.make.text({});
+    this.strategyValue.setPosition(200, 180);
+    this.strategyValue.setStyle(CommonStyle.NORMAL_STYLE);
+    this.container.add(this.strategyValue);
   }
 
   show(vehicle: Vehicle): void {
@@ -114,6 +138,8 @@ export class VehicleInfo {
     this.rangeValue.setText('' + range);
     this.socValue.setText('' + socPercent);
     this.consumptionValue.setText('' + vehicle.getFormattedConsumption());
+    this.thresholdValue.setText('' + vehicle.getFormattedThreshold());
+    this.strategyValue.setText(AbstractChargingStrategy.getLabel(vehicle.chargingStrategy.type()));
     this.container.setVisible(true);
     if (vehicle.status === Status.CHARGING || vehicle.status === Status.MOVING) {
       let subscription = vehicle.observable.subscribe(v => {

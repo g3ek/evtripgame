@@ -20,6 +20,7 @@ export class ChargingStationStats {
   private routeGraphics: RouteGraphics;
   private textsGroup: Group;
   private clock: Clock;
+  private infoText: Text;
 
   constructor(scene: Scene, routeGraphics: RouteGraphics, x: number, y: number, clock: Clock) {
     this.scene = scene;
@@ -35,19 +36,19 @@ export class ChargingStationStats {
   makeHeaders() {
     const socHeader = this.scene.make.text({});
     socHeader.setStyle(CommonStyle.NORMAL_STYLE);
-    socHeader.setPosition(20, 10);
+    socHeader.setPosition(20, 50);
     socHeader.setText("%");
     this.container.add(socHeader);
 
     const rangeHeader = this.scene.make.text({});
     rangeHeader.setStyle(CommonStyle.NORMAL_STYLE);
-    rangeHeader.setPosition(60, 10);
+    rangeHeader.setPosition(60, 50);
     rangeHeader.setText("Kms");
     this.container.add(rangeHeader);
 
     const strategyHeader = this.scene.make.text({});
     strategyHeader.setStyle(CommonStyle.NORMAL_STYLE);
-    strategyHeader.setPosition(140, 10);
+    strategyHeader.setPosition(140, 50);
     strategyHeader.setText("Strategy");
     this.container.add(strategyHeader);
   }
@@ -67,6 +68,7 @@ export class ChargingStationStats {
   updateVehicles(chargingStation: ChargingStation): void {
     if (chargingStation === this.current) {
       this.cleanup();
+      this.showInfoLine();
       this.showVehicleStats(chargingStation.vehicles, chargingStation.waiting);
     }
   }
@@ -77,6 +79,7 @@ export class ChargingStationStats {
       chargingStationSprite.select(true);
       this.container.setVisible(true);
       this.current = chargingStation;
+      this.showInfoLine();
       this.showVehicleStats(chargingStation.vehicles, chargingStation.waiting);
     } else if (this.current !== chargingStation) {
       let currentCSSprite = this.routeGraphics.findChargingStationSprite(this.current);
@@ -84,6 +87,7 @@ export class ChargingStationStats {
       chargingStationSprite.select(true);
       this.cleanup();
       this.current = chargingStation;
+      this.showInfoLine();
       this.showVehicleStats(chargingStation.vehicles, chargingStation.waiting);
     } else {
       chargingStationSprite.select(false);
@@ -91,6 +95,22 @@ export class ChargingStationStats {
       this.current = null;
       this.container.setVisible(false);
     }
+  }
+
+  private showInfoLine(): void {
+    this.infoText = this.setUpField(20, 10);
+    this.updateInfoLine();
+  }
+
+  private updateInfoLine(): void {
+    let sum = 0;
+    this.current.vehicles
+      .filter(v => v !== null)
+      .forEach(v => {
+      sum += v.getPowerRelativeToSocAndLosses(this.current.power);
+    });
+    const load = (Math.floor((sum/1000)*10)) / 10;
+    this.infoText.setText("KW : "+this.current.power/1000+" Load: "+load);
   }
 
   cleanup(): void {
@@ -126,7 +146,7 @@ export class ChargingStationStats {
       const vehicle = vehicles[i];
       if (vehicle != null) {
         const vehicleSprite = this.routeGraphics.findVehicleSprite(vehicle);
-        vehicleSprite.render(60, 315 + (i * 45));
+        vehicleSprite.render(60, 365 + (i * 45));
         vehicleSprite.visible(true);
         this.makeFields(vehicle, i);
       }
@@ -135,15 +155,15 @@ export class ChargingStationStats {
       const vehicle = waiting[i];
       const yOffset = (i+this.current.slots)
       const vehicleSprite = this.routeGraphics.findVehicleSprite(vehicle);
-      vehicleSprite.render(60, 315 + (yOffset * 45));
+      vehicleSprite.render(60, 365 + (yOffset * 45));
       vehicleSprite.visible(true);
       this.makeFields(vehicle, i+this.current.slots);
     }
   }
 
   private makeFields(vehicle: Vehicle, index: number) {
-    const rangeText = this.setUpField(60, 50+(index*45));
-    const strategyText = this.setUpField(140, 50+(index*45));
+    const rangeText = this.setUpField(60, 100 + (index * 45));
+    const strategyText = this.setUpField(140, 100 + (index * 45));
     let range = vehicle.getRange();
     const strategy = AbstractChargingStrategy.getLabel(vehicle.chargingStrategy.type());
     strategyText.setText(strategy);
@@ -153,26 +173,27 @@ export class ChargingStationStats {
         vehicleSprite.updateSoc();
         range = v.getRange();
         rangeText.setText('' + range);
+        this.updateInfoLine();
       });
       this.subscriptions.push(subscription);
     } else if (vehicle.status === Status.WAITING) {
       let subscription = vehicle.observable.subscribe(v => {
         let delta = this.clock.time - v.waitTime;
-        if (delta > (10*60*1000) && delta < (20*60*1000)) { // 10 minutes and we're getting impatient
+        if (delta > (10 * 60 * 1000) && delta < (20 * 60 * 1000)) { // 10 minutes and we're getting impatient
           vehicleSprite.setupWaitingTimeout(BlinkTime.FIRST);
-        } else if (delta > (20*60*1000) && delta < (30*60*1000)) { // 20 minutes and it's getting aggravating
+        } else if (delta > (20 * 60 * 1000) && delta < (30 * 60 * 1000)) { // 20 minutes and it's getting aggravating
           vehicleSprite.setupWaitingTimeout(BlinkTime.SECOND);
-        } else if (delta > (30*60*1000) && delta < (45*60*1000)) { // 30 minutes, getting fed up
+        } else if (delta > (30 * 60 * 1000) && delta < (45 * 60 * 1000)) { // 30 minutes, getting fed up
           vehicleSprite.setupWaitingTimeout(BlinkTime.THIRD);
-        } else if (delta > (45*60*1000)) { // 40 minutes, fail
+        } else if (delta > (45 * 60 * 1000)) { // 45 minutes, fail
           // todo game over
         }
       });
-      this.subscriptions.push(subscription);
-    } else {
       rangeText.setText('' + range);
+      this.subscriptions.push(subscription);
     }
   }
+
 
   private setUpField(x: number, y: number): Text {
     let textField = this.textsGroup.getFirstDead(false);

@@ -10,8 +10,8 @@ import Point = Phaser.Geom.Point;
 
 export class RouteGraphics {
 
-  //static DISTANCE_METRES: number = 250000; // 250km
-  static DISTANCE_METRES: number = 100000; // 100km
+  static DISTANCE_METRES: number = 250000; // 250km
+  //static DISTANCE_METRES: number = 100000; // 100km
 
   private scene: Phaser.Scene;
   private margin: number = 50;

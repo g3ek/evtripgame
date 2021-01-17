@@ -1,6 +1,7 @@
 import {AbstractChargingStrategy, ChargingStrategy, Strategy} from "./charging-strategy";
 import {ChargingStrategyAnxiety} from "./charging-strategy-anxiety";
 import {ChargingStrategyOpportunistic} from "./charging-strategy-opportunistic";
+import {ChargingStrategyOptimal} from "./charging-strategy-optimal";
 
 export class ChargingStrategyFactory {
 
@@ -16,6 +17,8 @@ export class ChargingStrategyFactory {
         return new ChargingStrategyAnxiety();
       case Strategy.OPPORTUNISTIC:
         return new ChargingStrategyOpportunistic();
+      case Strategy.OPTIMAL:
+        return new ChargingStrategyOptimal();
       default:
         throw "Illegal argument: "+strategy;
     }

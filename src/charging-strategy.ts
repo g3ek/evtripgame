@@ -3,7 +3,8 @@ import {ChargingStation} from "./charging-station";
 
 export enum Strategy {
   OPPORTUNISTIC,
-  ANXIETY
+  ANXIETY,
+  OPTIMAL
 }
 
 export interface ChargingStrategy {
@@ -15,7 +16,7 @@ export interface ChargingStrategy {
 
 export abstract class AbstractChargingStrategy implements ChargingStrategy {
 
-  static strategies: Strategy[] = [Strategy.OPPORTUNISTIC, Strategy.ANXIETY];
+  static strategies: Strategy[] = [Strategy.OPPORTUNISTIC, Strategy.ANXIETY, Strategy.OPTIMAL];
 
   abstract determineChargingNeed(chargingStations: ChargingStation[], vehicle: Vehicle, chargingStation: ChargingStation, newDistance: number): boolean;
 
@@ -35,6 +36,8 @@ export abstract class AbstractChargingStrategy implements ChargingStrategy {
         return "Opportunistic";
       case Strategy.ANXIETY:
         return "Anxiety";
+      case Strategy.OPTIMAL:
+        return "Optimal";
       default:
         throw "Illegal argument: "+strategy;
     }

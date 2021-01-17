@@ -61,7 +61,7 @@ export class ChargingStationSprite {
   select(on: boolean): void {
     this._graphics.clear();
     this._graphics.fillStyle(0x0aa0a0);
-    this._graphics.lineStyle(8, 0x000000);
+    this._graphics.lineStyle(4, 0x000000);
     this.createPath();
     if (on) {
       this._graphics.strokePath();

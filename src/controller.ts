@@ -97,6 +97,7 @@ export class Controller {
     vehicle.distance = 0;
     vehicle.totalWaitTime += (this.clock.time - vehicle.waitTime);
     vehicle.waitTime = 0;
+    vehicle.previousTime = this.clock.time;
     chargingStation.add(vehicle);
     this.afterChargingOrMoving(vehicle);
   }
@@ -105,10 +106,13 @@ export class Controller {
     for (let i = 0; i < chargingStation.vehicles.length; i++) {
       const vehicle = chargingStation.vehicles[i];
       if (vehicle !== null) {
-        const chargingTime = (this.clock.time - vehicle.startTime);
+        const chargingTime = (this.clock.time - vehicle.previousTime);
+        vehicle.previousTime = this.clock.time;
         // 3600000 to convert hour to ms
-        const energy = (chargingStation.power / 3600000) * chargingTime;
-        vehicle.soc = vehicle.startSOC + energy;
+        const actualPower = vehicle.getPowerRelativeToSocAndLosses(chargingStation.power);
+        console.log("power: "+chargingStation.power+", actual:"+actualPower);
+        const energy = (actualPower / 3600000) * chargingTime;
+        vehicle.soc += energy;
         if (vehicle.soc >= vehicle.capacity) {
           vehicle.soc = vehicle.capacity;
           this.stopCharging(vehicle, chargingStation);

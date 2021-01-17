@@ -31,8 +31,10 @@ export class Vehicle {
   private _totalTime: number = 0;
   private _latestChargingStation: ChargingStation;
   private _waitTime: number = 0;
-  private _totalWaitTime: number;
+  private _totalWaitTime: number = 0;
   private _chargingStrategy: ChargingStrategy;
+  private _throttleThreshold: number;
+  private _previousTime: number;
 
   constructor() {
     this._observable = timer(0, 1000)
@@ -187,9 +189,30 @@ export class Vehicle {
     this._chargingStrategy = value;
   }
 
+  get throttleThreshold(): number {
+    return this._throttleThreshold;
+  }
+
+  set throttleThreshold(value: number) {
+    this._throttleThreshold = value;
+  }
+
+  get previousTime(): number {
+    return this._previousTime;
+  }
+
+  set previousTime(value: number) {
+    this._previousTime = value;
+  }
+
   getFormattedSoc(): number {
     const factor = this._capacity / 100;
     return Math.round((this._soc / factor) * 10) / 10;
+  }
+
+  getFormattedThreshold(): number {
+    const factor = this._capacity / 100;
+    return Math.round((this._throttleThreshold / factor) * 10) / 10;
   }
 
   getRange(): number {
@@ -198,5 +221,23 @@ export class Vehicle {
 
   getFormattedConsumption(): number {
     return Math.round(this._consumption);
+  }
+
+  getPowerRelativeToSocAndLosses(power: number): number {
+    if (this.soc >= this.throttleThreshold) {
+      const limit = 3000;
+      const range = this.capacity - this.throttleThreshold;
+      const factor = 1 / range;
+      const deltaSoc = range - (this.capacity - this.soc);
+      const delta = deltaSoc * factor;
+      // http://lets-gamedev.de/phasereasings/
+      const deltaEased = Phaser.Math.Easing.Cubic.InOut(delta);
+      let throttledPower = power * (1-deltaEased);
+      if (throttledPower < 3000) { // minimum 3kW
+        throttledPower = 3000;
+      }
+      return throttledPower;
+    }
+    return power;
   }
 }
