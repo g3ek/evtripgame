@@ -15,21 +15,36 @@ export class ChoseNumberComponent {
   }
 
   create(scene: Scene, length: number, prefix: string = '', addToScene?: boolean): Container {
+
     let config = {
       fillStyle: {
         color: 0x909090,
         alpha: 1
       }
+    }
+
+    const left = scene.make.graphics(config);
+    const right = scene.make.graphics(config);
+    left.fillRoundedRect(0, 0, 60, 50, 20);
+    right.fillRoundedRect(length, 0, 60, 50, 20);
+    this.setupHighlight(left, 0, 0, 60, 50, 20);
+    this.setupHighlight(right, length, 0, 60, 50, 20);
+
+    let configArrow = {
+      fillStyle: {
+        color: 0xffffff,
+        alpha: 1
+      }
     };
 
-    const leftarrow = scene.make.graphics(config);
-    leftarrow.fillTriangle(20, 0, 0, 20, 20, 40);
-    const rightarrow = scene.make.graphics(config);
-    rightarrow.fillTriangle(length, 0, length+20, 20, length, 40);
+    const leftarrow = scene.make.graphics(configArrow);
+    leftarrow.fillTriangle(35, 5, 15, 25, 35, 45);
+    const rightarrow = scene.make.graphics(configArrow);
+    rightarrow.fillTriangle(length+20, 5, length+40, 25, length+20, 45);
 
     let field = scene.make.text(CommonStyle.NORMAL_STYLE);
-    field.x = 25;
-    field.y = 0;
+    field.x = 70;
+    field.y = 10;
     field.setText(prefix+this.values[0]+"");
     field.setStyle(CommonStyle.NORMAL_STYLE); // need to set, probably a bug
     if (addToScene) {
@@ -37,12 +52,14 @@ export class ChoseNumberComponent {
     } else {
       this.container = scene.make.container({});
     }
+
+    this.container.add(left);
+    this.container.add(right);
     this.container.add(leftarrow);
     this.container.add(field);
     this.container.add(rightarrow);
-    this.setupHighlight(leftarrow, 20, 0, 0, 20, 20, 40);
-    this.setupHighlight(rightarrow, length, 0, length+20, 20, length, 40);
-    leftarrow.on('pointerup', () => {
+
+    left.on('pointerup', () => {
       if (this.valueIndex > 0) {
         this.valueIndex--;
         field.setText(prefix+this.values[this.valueIndex]);
@@ -51,7 +68,7 @@ export class ChoseNumberComponent {
         }
       }
     });
-    rightarrow.on('pointerup', () => {
+    right.on('pointerup', () => {
       if (this.valueIndex < (this.values.length-1)) {
         this.valueIndex++;
         field.setText(prefix+this.values[this.valueIndex]);
@@ -63,15 +80,15 @@ export class ChoseNumberComponent {
     return this.container;
   }
 
-  setupHighlight(arrow: Graphics, x1: number, y1: number, x2: number, y2: number, x3: number, y3: number): void {
-    arrow.setInteractive(new Phaser.Geom.Triangle(x1, y1, x2, y2, x3, y3), Phaser.Geom.Triangle.Contains);
-    arrow.on('pointerover', () => {
-      arrow.lineStyle(5, 0x000000, 1);
-      arrow.strokeTriangle(x1, y1, x2, y2, x3, y3);
+  setupHighlight(button: Graphics, x: number, y: number, width: number, height: number, radius: number): void {
+    button.setInteractive(new Phaser.Geom.Rectangle(x, y, width, height), Phaser.Geom.Rectangle.Contains);
+    button.on('pointerover', () => {
+      button.lineStyle(10, 0x000000, 1);
+      button.strokeRoundedRect(x, y, width, height, radius);
     });
-    arrow.on('pointerout', () => {
-      arrow.clear();
-      arrow.fillTriangle(x1, y1, x2, y2, x3, y3);
+    button.on('pointerout', () => {
+      button.clear();
+      button.fillRoundedRect(x, y, width, height, radius);
     });
   }
 

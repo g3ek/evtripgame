@@ -13,7 +13,9 @@ export class GameButton {
   }
 
   create(scene: Scene, container: Container, text: string, width: number): void {
-    this.textGameObject = scene.make.text({});
+    this.textGameObject = scene.make.text({
+      color: 'white'
+    });
     this.textGameObject.setText(text);
     this.textGameObject.setPosition(20, 7);
     this.textGameObject.setStyle(CommonStyle.NORMAL_STYLE);
@@ -25,7 +27,7 @@ export class GameButton {
       y: 0,
       fillStyle: {
         color: 0x909090,
-        alpha: 0.5
+        alpha: 1
       }
     };
     messageBar = scene.make.graphics(messageBarConfig);

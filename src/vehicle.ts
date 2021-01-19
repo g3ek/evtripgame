@@ -225,13 +225,12 @@ export class Vehicle {
 
   getPowerRelativeToSocAndLosses(power: number): number {
     if (this.soc >= this.throttleThreshold) {
-      const limit = 3000;
       const range = this.capacity - this.throttleThreshold;
       const factor = 1 / range;
       const deltaSoc = range - (this.capacity - this.soc);
       const delta = deltaSoc * factor;
       // http://lets-gamedev.de/phasereasings/
-      const deltaEased = Phaser.Math.Easing.Cubic.InOut(delta);
+      const deltaEased = Phaser.Math.Easing.Sine.InOut(delta);
       let throttledPower = power * (1-deltaEased);
       if (throttledPower < 3000) { // minimum 3kW
         throttledPower = 3000;

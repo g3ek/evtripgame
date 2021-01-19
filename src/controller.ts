@@ -73,14 +73,16 @@ export class Controller {
       const chargingStrategy = vehicle.chargingStrategy;
       let doNeedToChargeHere = chargingStrategy.determineChargingNeed(this.chargingStations, vehicle, chargingStation, newDistance);
       if (doNeedToChargeHere && chargingStation !== vehicle.latestChargingStation) {
-        if (chargingStation.isFull()) {
+        if (chargingStation.isOccupied() && !chargingStation.isFull()) {
           vehicle.status = Status.WAITING;
           vehicle.waitTime = this.clock.time;
           chargingStation.addWaiting(vehicle);
           this.routeGraphics.renderWaitingVehicle(vehicle, chargingStation);
-        } else {
+        } else if (!chargingStation.isOccupied()) {
           this.startCharging(chargingStation, vehicle);
           this.routeGraphics.renderChargingVehicle(vehicle, chargingStation);
+        } else { // charging station area is full, no more place to park and wait
+          return false;
         }
         this.eventDispatcher.emit('updatechargingstation', chargingStation);
         vehicle.latestChargingStation = chargingStation;
@@ -110,7 +112,6 @@ export class Controller {
         vehicle.previousTime = this.clock.time;
         // 3600000 to convert hour to ms
         const actualPower = vehicle.getPowerRelativeToSocAndLosses(chargingStation.power);
-        console.log("power: "+chargingStation.power+", actual:"+actualPower);
         const energy = (actualPower / 3600000) * chargingTime;
         vehicle.soc += energy;
         if (vehicle.soc >= vehicle.capacity) {
@@ -140,7 +141,7 @@ export class Controller {
   }
 
   private activateWaitingVehicle(chargingStation: ChargingStation): void {
-    if (chargingStation.isFull() || !chargingStation.hasWaiting()) {
+    if (chargingStation.isOccupied() || !chargingStation.hasWaiting()) {
       return;
     }
     let vehicles = chargingStation.waiting.sort((a, b) => {

@@ -33,8 +33,12 @@ export class ChargingStation {
     this._waiting = this._waiting.filter(v => v !== vehicle);
   }
 
-  isFull(): boolean {
+  isOccupied(): boolean {
     return this._vehicles.every(v => v !== null);
+  }
+
+  isFull(): boolean {
+    return (this._waiting.length + this._slots) === 20;
   }
 
   occupied(): number {

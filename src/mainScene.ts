@@ -39,7 +39,7 @@ export class MainScene extends Phaser.Scene {
     this.vehicleFactory = new VehicleFactory(clock, this, this.eventDispatcher);
     this.controller = new Controller(this.routeGraphics, clock, this.eventDispatcher);
     let timeFactorChooser = new ChoseNumberComponent([1, 5, 10, 15, 20, 25, 35, 40]);
-    let timeChooserContainer = timeFactorChooser.create(this, 90, 'x', true);
+    let timeChooserContainer = timeFactorChooser.create(this, 140, 'x', true);
     timeChooserContainer.setPosition(30, 80);
     timeFactorChooser.setAction(() => {
       let value = timeFactorChooser.getValue();

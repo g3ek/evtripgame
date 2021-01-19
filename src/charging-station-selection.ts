@@ -12,7 +12,7 @@ export class ChargingStationSelection {
 
   private eventDispatcher: EvtripEventDispatcher;
   private backScreen: Graphics;
-  private distanceSelected: number;
+  private distanceSelected: number = null;
   private container: Container;
 
   constructor(eventDispatcher: EvtripEventDispatcher) {
@@ -42,13 +42,13 @@ export class ChargingStationSelection {
     this.container.add(title);
 
     let choseCapacity = new ChoseNumberComponent(ChargingStationFactory.CAPACITIES);
-    let containerCapacity = choseCapacity.create(scene, 110);
+    let containerCapacity = choseCapacity.create(scene, 190);
     this.container.add(containerCapacity);
-    containerCapacity.setPosition(10, 70);
+    containerCapacity.setPosition(10, 50);
 
     let slotValues = [1, 2, 3, 4, 5, 6, 7, 9, 10];
     let choseSlots = new ChoseNumberComponent(slotValues);
-    let containerSlots = choseSlots.create(scene, 70);
+    let containerSlots = choseSlots.create(scene, 110);
     this.container.add(containerSlots);
     containerSlots.setPosition(10, 120);
 
@@ -72,10 +72,12 @@ export class ChargingStationSelection {
     addButton.create(scene, addButtonContainer, "Add", 150);
     addButtonContainer.setPosition(10, 220);
     addButton.setAction(() => {
-      let power = choseCapacity.getValue();
-      let distance = this.distanceSelected;
-      let slots = choseSlots.getValue();
-      this.eventDispatcher.emit('addchargingstation', power, distance, slots);
+      if (this.distanceSelected !== null) {
+        let power = choseCapacity.getValue();
+        let distance = this.distanceSelected;
+        let slots = choseSlots.getValue();
+        this.eventDispatcher.emit('addchargingstation', power, distance, slots);
+      }
     });
   }
 
