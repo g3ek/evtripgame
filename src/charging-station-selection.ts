@@ -68,7 +68,7 @@ export class ChargingStationSelection {
 
     const addButtonContainer = scene.make.container({});
     this.container.add(addButtonContainer);
-    let addButton = new GameButton();
+    const addButton = new GameButton();
     addButton.create(scene, addButtonContainer, "Add", 150);
     addButtonContainer.setPosition(10, 220);
     addButton.setAction(() => {
@@ -78,6 +78,14 @@ export class ChargingStationSelection {
         let slots = choseSlots.getValue();
         this.eventDispatcher.emit('addchargingstation', power, distance, slots);
       }
+    });
+    const closeButtonContainer = scene.make.container({});
+    this.container.add(closeButtonContainer);
+    const closeButton = new GameButton();
+    closeButton.create(scene, closeButtonContainer, "Close", 160);
+    closeButtonContainer.setPosition(170, 220);
+    closeButton.setAction(() => {
+      this.show();
     });
   }
 

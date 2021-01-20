@@ -4,6 +4,7 @@ import {CommonStyle} from "./common-style";
 import {Subscription} from "rxjs";
 import {RouteGraphics} from "./route-graphics";
 import {AbstractChargingStrategy} from "./charging-strategy";
+import {GameButton} from "./game-button";
 import Container = Phaser.GameObjects.Container;
 import Text = Phaser.GameObjects.Text;
 
@@ -42,76 +43,80 @@ export class VehicleInfo {
     backScreen.setDepth(1);
     this.container.add(backScreen);
 
-    this.title = this.scene.make.text({});
-    this.title.setPosition(10, 10);
-    this.title.setStyle(CommonStyle.NORMAL_STYLE); // need to set, probably a bug
-    this.container.add(this.title);
-
     const socLabel = this.scene.make.text({});
-    socLabel.setPosition(10, 30);
+    socLabel.setPosition(10, 10);
     socLabel.setStyle(CommonStyle.NORMAL_STYLE);
     socLabel.setText('SoC');
     this.container.add(socLabel);
 
     this.socValue = this.scene.make.text({});
-    this.socValue.setPosition(200, 30);
+    this.socValue.setPosition(200, 10);
     this.socValue.setStyle(CommonStyle.NORMAL_STYLE);
     this.container.add(this.socValue);
 
     const rangeLabel = this.scene.make.text({});
-    rangeLabel.setPosition(10, 60);
+    rangeLabel.setPosition(10, 40);
     rangeLabel.setStyle(CommonStyle.NORMAL_STYLE);
     rangeLabel.setText('Range');
     this.container.add(rangeLabel);
 
     this.rangeValue = this.scene.make.text({});
-    this.rangeValue.setPosition(200, 60);
+    this.rangeValue.setPosition(200, 40);
     this.rangeValue.setStyle(CommonStyle.NORMAL_STYLE);
     this.container.add(this.rangeValue);
 
     const capacityLabel = this.scene.make.text({});
-    capacityLabel.setPosition(10, 90);
+    capacityLabel.setPosition(10, 70);
     capacityLabel.setStyle(CommonStyle.NORMAL_STYLE);
     capacityLabel.setText('Capacity');
     this.container.add(capacityLabel);
 
     this.capacityValue = this.scene.make.text({});
-    this.capacityValue.setPosition(200, 90);
+    this.capacityValue.setPosition(200, 70);
     this.capacityValue.setStyle(CommonStyle.NORMAL_STYLE);
     this.container.add(this.capacityValue);
 
     const consumptionLabel = this.scene.make.text({});
-    consumptionLabel.setPosition(10, 120);
+    consumptionLabel.setPosition(10, 100);
     consumptionLabel.setStyle(CommonStyle.NORMAL_STYLE);
     consumptionLabel.setText('Consumption');
     this.container.add(consumptionLabel);
 
     this.consumptionValue = this.scene.make.text({});
-    this.consumptionValue.setPosition(200, 120);
+    this.consumptionValue.setPosition(200, 100);
     this.consumptionValue.setStyle(CommonStyle.NORMAL_STYLE);
     this.container.add(this.consumptionValue);
 
     const thresholdLabel = this.scene.make.text({});
-    thresholdLabel.setPosition(10, 150);
+    thresholdLabel.setPosition(10, 130);
     thresholdLabel.setStyle(CommonStyle.NORMAL_STYLE);
     thresholdLabel.setText('Threshold');
     this.container.add(thresholdLabel);
 
     this.thresholdValue = this.scene.make.text({});
-    this.thresholdValue.setPosition(200, 150);
+    this.thresholdValue.setPosition(200, 130);
     this.thresholdValue.setStyle(CommonStyle.NORMAL_STYLE);
     this.container.add(this.thresholdValue);
 
     const strategyLabel = this.scene.make.text({});
-    strategyLabel.setPosition(10, 180);
+    strategyLabel.setPosition(10, 160);
     strategyLabel.setStyle(CommonStyle.NORMAL_STYLE);
     strategyLabel.setText('Strategy');
     this.container.add(strategyLabel);
 
     this.strategyValue = this.scene.make.text({});
-    this.strategyValue.setPosition(200, 180);
+    this.strategyValue.setPosition(200, 160);
     this.strategyValue.setStyle(CommonStyle.NORMAL_STYLE);
     this.container.add(this.strategyValue);
+
+    const closeButtonContainer = this.scene.make.container({});
+    closeButtonContainer.setPosition(120, 210);
+    const closeButton = new GameButton();
+    closeButton.create(this.scene, closeButtonContainer, "Close", 120);
+    closeButton.setAction(() => {
+      this.hide(this.vehicle);
+    });
+    this.container.add(closeButtonContainer);
   }
 
   show(vehicle: Vehicle): void {
