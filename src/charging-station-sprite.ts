@@ -2,6 +2,7 @@ import {Scene} from "phaser";
 import {ChargingStation} from "./charging-station";
 import {EvtripEventDispatcher} from "./evtrip-event-dispatcher";
 import {CommonStyle} from "./common-style";
+import {Blinker, BlinkTime} from "./blinker";
 import Pointer = Phaser.Input.Pointer;
 import Text = Phaser.GameObjects.Text;
 import Container = Phaser.GameObjects.Container;
@@ -15,6 +16,8 @@ export class ChargingStationSprite {
   private _parkingText: Text;
   private _container: Container;
   private _graphics: Graphics;
+  private _blinker: Blinker = null;
+  private _scene: Scene;
 
   constructor(chargingStation: ChargingStation, eventDispatcher: EvtripEventDispatcher) {
     this._chargingStation = chargingStation;
@@ -22,6 +25,7 @@ export class ChargingStationSprite {
   }
 
   create(scene: Scene): void {
+    this._scene = scene;
     this._container = scene.add.container();
     this._graphics = scene.make.graphics({});
     this._graphics.fillStyle(0x0aa0a0);
@@ -71,6 +75,19 @@ export class ChargingStationSprite {
   renderVehicle() {
     this._slotsText.setText(this.chargingStation.occupied()+"/"+this.chargingStation.slots);
     this._parkingText.setText(""+this.chargingStation.waiting.length);
+  }
+
+  setupWaitingTimeout(blinkTime: BlinkTime): void {
+    if (this._blinker === null) {
+      this._blinker = new Blinker(this._scene, this._graphics);
+    }
+    this._blinker.createUpdateTimeline(blinkTime);
+  }
+
+  stopBlinker(): void {
+    if (this._blinker !== null) {
+      this._blinker.stop();
+    }
   }
 
   private createPath() {

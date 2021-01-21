@@ -4,6 +4,8 @@ import {Status, Vehicle} from "./vehicle";
 import {ChargingStation} from "./charging-station";
 import {CommonStyle} from "./common-style";
 import {EvtripEventDispatcher} from "./evtrip-event-dispatcher";
+import {Clock} from "./clock";
+import {BlinkTime} from "./blinker";
 import Pointer = Phaser.Input.Pointer;
 import Camera = Phaser.Cameras.Scene2D.Camera;
 import Point = Phaser.Geom.Point;
@@ -27,10 +29,12 @@ export class RouteGraphics {
   private swipePoint: Point = null;
   private cameraPoint: Point = null;
   private eventDispatcher: EvtripEventDispatcher;
+  private clock: Clock;
 
-  constructor(scene: Phaser.Scene, eventDispatcher: EvtripEventDispatcher) {
+  constructor(scene: Phaser.Scene, eventDispatcher: EvtripEventDispatcher, clock: Clock) {
     this.scene = scene;
     this.eventDispatcher = eventDispatcher;
+    this.clock = clock;
   }
 
   render(distance: number): void {
@@ -149,6 +153,23 @@ export class RouteGraphics {
         let distanceInMetres = vehicle.totalDistance;
         let y = distanceInMetres / this.distanceToPixelsFactor;
         sprite.render(this.x + this.roadWidth /2, y + this.margin);
+      }
+    });
+    this.chargingStationSprites.forEach(css => {
+      let impatients = css.chargingStation.waiting.filter(v => {
+        return v.isImpatient(this.clock.time)
+      });
+      if (impatients.length > 0) {
+        let minBlinktime = BlinkTime.FIRST;
+        impatients.forEach(v => {
+          let blinktime = v.getBlinktime(this.clock.time);
+          if (blinktime < minBlinktime) {
+            minBlinktime = blinktime;
+          }
+        });
+        css.setupWaitingTimeout(minBlinktime);
+      } else {
+        css.stopBlinker();
       }
     });
   }

@@ -102,7 +102,7 @@ export class VehicleSprite {
     if (this.blinker === null) {
       this.blinker = new Blinker(this.scene, this.circle);
     }
-    this.blinker.createUpdateTimeline(this.circle, blinkTime);
+    this.blinker.createUpdateTimeline(blinkTime);
   }
 
   stopBlinker() {

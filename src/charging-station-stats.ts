@@ -178,15 +178,13 @@ export class ChargingStationStats {
       this.subscriptions.push(subscription);
     } else if (vehicle.status === Status.WAITING) {
       let subscription = vehicle.observable.subscribe(v => {
-        let delta = this.clock.time - v.waitTime;
-        if (delta > (10 * 60 * 1000) && delta < (20 * 60 * 1000)) { // 10 minutes and we're getting impatient
-          vehicleSprite.setupWaitingTimeout(BlinkTime.FIRST);
-        } else if (delta > (20 * 60 * 1000) && delta < (30 * 60 * 1000)) { // 20 minutes and it's getting aggravating
-          vehicleSprite.setupWaitingTimeout(BlinkTime.SECOND);
-        } else if (delta > (30 * 60 * 1000) && delta < (45 * 60 * 1000)) { // 30 minutes, getting fed up
-          vehicleSprite.setupWaitingTimeout(BlinkTime.THIRD);
-        } else if (delta > (45 * 60 * 1000)) { // 45 minutes, fail
-          // todo game over
+        if (!this.scene.time.paused) {
+          const blinktime = v.getBlinktime(this.clock.time);
+          if (blinktime === BlinkTime.FOURTH) {
+            // todo game over
+          } else if (blinktime !== null) {
+            vehicleSprite.setupWaitingTimeout(blinktime);
+          }
         }
       });
       rangeText.setText('' + range);

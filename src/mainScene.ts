@@ -17,7 +17,7 @@ import {ChoseNumberComponent} from "./chose-number-component";
 export class MainScene extends Phaser.Scene {
 
   private eventDispatcher: EvtripEventDispatcher = new EvtripEventDispatcher();
-  private readonly routeGraphics = new RouteGraphics(this, this.eventDispatcher);
+  private routeGraphics;
   private controller: Controller;
   private vehicleFactory: VehicleFactory;
   private chargingStationFactory: ChargingStationFactory = new ChargingStationFactory();
@@ -36,6 +36,7 @@ export class MainScene extends Phaser.Scene {
   create(): void {
     let clock = new Clock(this);
     clock.create();
+    this.routeGraphics = new RouteGraphics(this, this.eventDispatcher, clock)
     this.vehicleFactory = new VehicleFactory(clock, this, this.eventDispatcher);
     this.controller = new Controller(this.routeGraphics, clock, this.eventDispatcher);
     let timeFactorChooser = new ChoseNumberComponent([1, 5, 10, 15, 20, 25, 35, 40]);

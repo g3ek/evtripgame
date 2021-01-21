@@ -2,6 +2,7 @@ import {Observable, timer} from "rxjs";
 import {map} from "rxjs/operators";
 import {ChargingStation} from "./charging-station";
 import {ChargingStrategy} from "./charging-strategy";
+import {BlinkTime} from "./blinker";
 
 export enum Status {
   NEW,
@@ -238,5 +239,24 @@ export class Vehicle {
       return throttledPower;
     }
     return power;
+  }
+
+  isImpatient(clocktime: number): boolean {
+    return this.waitTime !== 0 && clocktime - this.waitTime > (10 * 60 * 1000); // 10 minutes wait
+  }
+
+  getBlinktime(clocktime: number): BlinkTime {
+    let delta = clocktime - this.waitTime;
+    if (delta > (10 * 60 * 1000) && delta < (20 * 60 * 1000)) { // 10 minutes and we're getting impatient
+      return BlinkTime.FIRST;
+    } else if (delta > (20 * 60 * 1000) && delta < (30 * 60 * 1000)) { // 20 minutes and it's getting aggravating
+      return BlinkTime.SECOND;
+    } else if (delta > (30 * 60 * 1000) && delta < (45 * 60 * 1000)) { // 30 minutes, getting fed up
+      return BlinkTime.THIRD;
+    } else if (delta > (45 * 60 * 1000)) { // 45 minutes, fail
+      return BlinkTime.FOURTH;
+    } else {
+      return null;
+    }
   }
 }

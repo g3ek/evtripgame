@@ -24,23 +24,24 @@ export class Blinker {
     this.currentTimeLine.timeScale = scale;
   }
 
-  public createUpdateTimeline(graphics: Graphics, blinkTime: BlinkTime): void {
+  public createUpdateTimeline(blinkTime: BlinkTime): void {
     if (this.currentTimeLine !== null && blinkTime === this.currentTimeLine.data[0].duration) {
       return; // do nothing, no update of the blink time
     }
     if (this.currentTimeLine !== null) {
       this.currentTimeLine.stop();
     }
+    this.stopped = false;
     this.currentTimeLine = this.scene.tweens.createTimeline();
     this.currentTimeLine.add({
-      targets: graphics,
+      targets: this.graphics,
       duration: blinkTime,
       alpha: 0.1,
       ease: Phaser.Math.Easing.Stepped,
       timeScale: 1
     });
     this.currentTimeLine.add({
-      targets: graphics,
+      targets: this.graphics,
       duration: blinkTime,
       alpha: 1,
       ease: Phaser.Math.Easing.Stepped,
@@ -50,8 +51,10 @@ export class Blinker {
   }
 
   public stop() {
-    this.stopped = true;
-    this.graphics.setAlpha(1);
-    this.currentTimeLine.stop();
+    if (!this.stopped && this.currentTimeLine !== null) {
+      this.stopped = true;
+      this.graphics.setAlpha(1);
+      this.currentTimeLine.stop();
+    }
   }
 }
