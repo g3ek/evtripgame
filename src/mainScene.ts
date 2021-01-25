@@ -6,22 +6,27 @@ import {VehicleSprite} from "./vehicle-sprite";
 import {RouteGraphics} from "./route-graphics";
 import {Clock} from "./clock";
 import {ChargingStationSelection} from "./charging-station-selection";
-import {ChargingStationFactory} from "./charging-station-factory";
 import {ChargingStation} from "./charging-station";
 import {ChargingStationSprite} from "./charging-station-sprite";
 import {GameButton} from "./game-button";
 import {ChargingStationStats} from "./charging-station-stats";
 import {VehicleInfo} from "./vehicle-info";
 import {ChoseNumberComponent} from "./chose-number-component";
+import {LevelScore} from "./level-score";
+import {CommonStyle} from "./common-style";
+import Text = Phaser.GameObjects.Text;
 
 export class MainScene extends Phaser.Scene {
 
   private eventDispatcher: EvtripEventDispatcher = new EvtripEventDispatcher();
-  private routeGraphics;
+  private routeGraphics: RouteGraphics;
   private controller: Controller;
   private vehicleFactory: VehicleFactory;
-  private chargingStationFactory: ChargingStationFactory = new ChargingStationFactory();
   private chargingStationStats: ChargingStationStats;
+  private scoreText: Text;
+  private moneyText: Text;
+  private levelText:Text;
+  private levelScore: LevelScore;
 
   constructor(config: string | Phaser.Types.Scenes.SettingsConfig) {
     super(config);
@@ -34,11 +39,12 @@ export class MainScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.levelScore = new LevelScore(this.eventDispatcher);
     let clock = new Clock(this);
     clock.create();
-    this.routeGraphics = new RouteGraphics(this, this.eventDispatcher, clock)
-    this.vehicleFactory = new VehicleFactory(clock, this, this.eventDispatcher);
-    this.controller = new Controller(this.routeGraphics, clock, this.eventDispatcher);
+    this.routeGraphics = new RouteGraphics(this, this.eventDispatcher, clock, this.levelScore.getLevel().distance);
+    this.vehicleFactory = new VehicleFactory(clock, this, this.eventDispatcher, this.levelScore);
+    this.controller = new Controller(this.routeGraphics, clock, this.eventDispatcher, this.levelScore);
     let timeFactorChooser = new ChoseNumberComponent([1, 5, 10, 15, 20, 25, 35, 40]);
     let timeChooserContainer = timeFactorChooser.create(this, 140, 'x', true);
     timeChooserContainer.setPosition(30, 80);
@@ -47,13 +53,16 @@ export class MainScene extends Phaser.Scene {
       clock.timeScale = value;
       this.vehicleFactory.updateNewCarTimerEvent(value);
     });
+    this.levelText = this.add.text(30, 30, "Level: 1", CommonStyle.NORMAL_STYLE);
+    this.moneyText = this.add.text(250, 30, "$: 0", CommonStyle.NORMAL_STYLE);
+    this.scoreText = this.add.text(500, 30, "Score: 0", CommonStyle.NORMAL_STYLE);
 
-    let chargingStationSelection = new ChargingStationSelection(this.eventDispatcher);
+    let chargingStationSelection = new ChargingStationSelection(this.eventDispatcher, this.levelScore);
     chargingStationSelection.create(this);
     this.chargingStationStats = new ChargingStationStats(this, this.routeGraphics, 30, 250, clock);
     let vehicleInfo = new VehicleInfo(this, this.routeGraphics, 70, 230);
     vehicleInfo.create();
-    this.routeGraphics.render(250);
+    this.routeGraphics.render();
     const pauseContainer = this.add.container(30, 140);
     let pauseButton = new GameButton();
     pauseButton.create(this, pauseContainer, "Pause", 150);
@@ -91,9 +100,17 @@ export class MainScene extends Phaser.Scene {
       this.chargingStationStats.updateVehicles(chargingstation);
     });
     this.eventDispatcher.on("vehiclefinished", (vehicle: Vehicle) => {
+      this.levelScore.addToScore(5);
+      this.scoreText.setText("Score: "+this.levelScore.score);
+      this.levelScore.checkNextLevel();
       vehicleInfo.hide(vehicle);
     });
-
+    this.eventDispatcher.on("nextlevel", () => {
+      this.levelText.setText("Level: "+this.levelScore.level);
+      chargingStationSelection.nextLevel();
+      RouteGraphics.DISTANCE_METRES = this.levelScore.getLevel().distance;
+      this.routeGraphics.nextLevel();
+    });
 
     document.addEventListener('visibilitychange', () => {
       if (document.hidden && !this.time.paused) {
@@ -108,6 +125,7 @@ export class MainScene extends Phaser.Scene {
     super.update(time, delta);
     this.controller.update(delta);
     this.routeGraphics.update();
+    this.moneyText.setText("$: "+Math.floor(this.levelScore.money));
   }
 
   private addVehicle(vehicle): void {
@@ -127,7 +145,7 @@ export class MainScene extends Phaser.Scene {
     let csSprite = new ChargingStationSprite(chargingStation, this.eventDispatcher);
     csSprite.create(this);
     this.controller.addChargingStation(chargingStation);
-    this.routeGraphics.renderChargingStation(csSprite);
+    this.routeGraphics.addChargingStation(csSprite);
   }
 
   private showChargingStationStats(chargingstation: ChargingStation) {

@@ -5,17 +5,20 @@ import Container = Phaser.GameObjects.Container;
 
 export class ChoseNumberComponent {
 
-  private values: number[];
+  private _values: number[];
   private valueIndex: number = 0;
   private container: Container;
   private action: () => void = null;
 
   constructor(values: number[]) {
-    this.values = values;
+    this._values = values;
+  }
+
+  set values(values: number[]) {
+    this._values = values;
   }
 
   create(scene: Scene, length: number, prefix: string = '', addToScene?: boolean): Container {
-
     let config = {
       fillStyle: {
         color: 0x909090,
@@ -45,7 +48,7 @@ export class ChoseNumberComponent {
     let field = scene.make.text(CommonStyle.NORMAL_STYLE);
     field.x = 70;
     field.y = 10;
-    field.setText(prefix+this.values[0]+"");
+    field.setText(prefix+this._values[0]+"");
     field.setStyle(CommonStyle.NORMAL_STYLE); // need to set, probably a bug
     if (addToScene) {
       this.container = scene.add.container();
@@ -62,16 +65,16 @@ export class ChoseNumberComponent {
     left.on('pointerup', () => {
       if (this.valueIndex > 0) {
         this.valueIndex--;
-        field.setText(prefix+this.values[this.valueIndex]);
+        field.setText(prefix+this._values[this.valueIndex]);
         if (this.action !== null) {
           this.action();
         }
       }
     });
     right.on('pointerup', () => {
-      if (this.valueIndex < (this.values.length-1)) {
+      if (this.valueIndex < (this._values.length-1)) {
         this.valueIndex++;
-        field.setText(prefix+this.values[this.valueIndex]);
+        field.setText(prefix+this._values[this.valueIndex]);
         if (this.action !== null) {
           this.action();
         }
@@ -97,7 +100,7 @@ export class ChoseNumberComponent {
   }
 
   getValue(): number {
-    return this.values[this.valueIndex];
+    return this._values[this.valueIndex];
   }
 
   setAction(action: () => void) {

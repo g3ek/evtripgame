@@ -9,17 +9,18 @@ import {BlinkTime} from "./blinker";
 import Pointer = Phaser.Input.Pointer;
 import Camera = Phaser.Cameras.Scene2D.Camera;
 import Point = Phaser.Geom.Point;
+import Text = Phaser.GameObjects.Text;
+import Graphics = Phaser.GameObjects.Graphics;
 
 export class RouteGraphics {
 
-  static DISTANCE_METRES: number = 250000; // 250km
-  //static DISTANCE_METRES: number = 100000; // 100km
+  static DISTANCE_METRES: number;
 
   private scene: Phaser.Scene;
-  private margin: number = 50;
+  private margin: number = 20;
+  private startY: number = 70;
   private marginX: number = 80;
   private roadWidth: number = 10;
-  private distance: number;
   private roadLengthPixels: number;
   private x: number;
   private distanceToPixelsFactor: number;
@@ -30,20 +31,37 @@ export class RouteGraphics {
   private cameraPoint: Point = null;
   private eventDispatcher: EvtripEventDispatcher;
   private clock: Clock;
+  private markerText: Text[] = [];
+  private markerLine: Graphics[] = [];
 
-  constructor(scene: Phaser.Scene, eventDispatcher: EvtripEventDispatcher, clock: Clock) {
+  constructor(scene: Phaser.Scene, eventDispatcher: EvtripEventDispatcher, clock: Clock, roadDistance: number) {
     this.scene = scene;
     this.eventDispatcher = eventDispatcher;
     this.clock = clock;
+    RouteGraphics.DISTANCE_METRES = roadDistance;
   }
 
-  render(distance: number): void {
-    this.distance = distance;
+  nextLevel() {
+    this.markerText.forEach(t => {
+      t.destroy();
+    });
+    this.markerLine.forEach(l => {
+      l.destroy();
+    });
+    this.markerText = [];
+    this.markerLine = [];
+    this.distanceToPixelsFactor = RouteGraphics.DISTANCE_METRES / this.roadLengthPixels;
+    this.renderDistanceMarkers();
+    this.chargingStationSprites.forEach(cs => {
+      this.renderChargingStation(cs);
+    });
+  }
+
+  render(): void {
     const heightConfig = this.scene.game.config.height;
     const widthConfig = this.scene.game.config.width;
     const height: number = (<number>heightConfig);
     const width: number = (<number>widthConfig);
-
     const scrollWidth = 240;
     let background = this.scene.add.graphics({
       fillStyle: {
@@ -51,8 +69,8 @@ export class RouteGraphics {
         alpha: 1
       }
     });
-    background.fillRect(width - scrollWidth, 0, 400, height);
-    background.setInteractive(new Phaser.Geom.Rectangle(width-scrollWidth, 0, 400, height), Phaser.Geom.Rectangle.Contains);
+    background.fillRect(width - scrollWidth, this.startY, 400, height-this.startY);
+    background.setInteractive(new Phaser.Geom.Rectangle(width-scrollWidth, this.startY, 400, height-this.startY), Phaser.Geom.Rectangle.Contains);
 
     const roadGraphics = this.scene.add.graphics({
       fillStyle: {
@@ -60,16 +78,16 @@ export class RouteGraphics {
         alpha: 1
       }
     });
-    this.roadLengthPixels = (<number>height) - (this.margin * 2);
+    this.roadLengthPixels = (<number>height) - (this.startY+(this.margin*2));
     this.x = width - this.marginX;
-    roadGraphics.fillRect(this.x, this.margin, this.roadWidth, this.roadLengthPixels);
+    roadGraphics.fillRect(this.x, this.startY+this.margin, this.roadWidth, this.roadLengthPixels);
     this.distanceToPixelsFactor = RouteGraphics.DISTANCE_METRES / this.roadLengthPixels;
     this.renderDistanceMarkers();
 
     this.scene.cameras.main.setBounds(0, 0, width-scrollWidth, height);
     this.roadCamera = this.scene.cameras.add();
-    this.roadCamera.setViewport(width - scrollWidth, 0, scrollWidth, height);
-    this.roadCamera.setBounds(width - scrollWidth, 0, scrollWidth, height);
+    this.roadCamera.setViewport(width - scrollWidth, this.startY, scrollWidth, height-this.startY);
+    this.roadCamera.setBounds(width - scrollWidth, this.startY, scrollWidth, height-this.startY);
     this.scene.input.on('wheel', (pointer: Pointer, currentlyOver, deltaX: number, deltaZ: number) => {
       if (deltaZ < 0 && this.roadCamera.zoom < 3) {
         this.roadCamera.setZoom(this.roadCamera.zoom + 0.1);
@@ -102,9 +120,10 @@ export class RouteGraphics {
     let km25 = RouteGraphics.DISTANCE_METRES / 25000;
     for(let i=0; i <= km25; i++) {
       let y = (25000 * i) / this.distanceToPixelsFactor;
-      this.scene.add.text(this.x+25, y+this.margin, ""+(25*i)+"km", CommonStyle.NORMAL_STYLE)
+      const markerText = this.scene.add.text(this.x+25, y+this.startY+this.margin, ""+(25*i)+"km", CommonStyle.NORMAL_STYLE)
         .setScale(0.5)
         .setOrigin(0, 0.5);
+      this.markerText.push(markerText);
       let markerLine = this.scene.add.graphics({
         lineStyle: {
           color: 0x0a0ae0,
@@ -112,8 +131,8 @@ export class RouteGraphics {
           width: 2
         }
       });
-      markerLine.lineBetween(this.x, y+this.margin, this.x+20, y+this.margin);
-
+      markerLine.lineBetween(this.x, y+this.startY+this.margin, this.x+20, y+this.startY+this.margin);
+      this.markerLine.push(markerLine);
     }
   }
 
@@ -152,7 +171,7 @@ export class RouteGraphics {
       if (vehicle.status === Status.MOVING) {
         let distanceInMetres = vehicle.totalDistance;
         let y = distanceInMetres / this.distanceToPixelsFactor;
-        sprite.render(this.x + this.roadWidth /2, y + this.margin);
+        sprite.render(this.x + this.roadWidth /2, y + this.margin+this.startY);
       }
     });
     this.chargingStationSprites.forEach(css => {
@@ -174,9 +193,13 @@ export class RouteGraphics {
     });
   }
 
-  renderChargingStation(csSprite: ChargingStationSprite): void {
+  addChargingStation(csSprite: ChargingStationSprite): void {
     this.chargingStationSprites.push(csSprite);
-    csSprite.render(this.distanceToPixelsFactor, this.x, this.margin);
+    this.renderChargingStation(csSprite);
+  }
+
+  renderChargingStation(csSprite: ChargingStationSprite): void {
+    csSprite.render(this.distanceToPixelsFactor, this.x, this.startY+this.margin);
   }
 
   renderChargingVehicle(vehicle: Vehicle, chargingStation: ChargingStation): void {

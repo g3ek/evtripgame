@@ -18,7 +18,7 @@ export class Clock {
   }
 
   create() {
-    this.clockText = this.scene.add.text(30, 30, "Time: ", CommonStyle.NORMAL_STYLE);
+    this.clockText = this.scene.add.text(250, 90, "Time: ", CommonStyle.NORMAL_STYLE);
     this.scene.time.addEvent({
       loop: true,
       delay: 100,

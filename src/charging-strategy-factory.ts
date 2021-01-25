@@ -1,13 +1,13 @@
-import {AbstractChargingStrategy, ChargingStrategy, Strategy} from "./charging-strategy";
+import {ChargingStrategy, Strategy} from "./charging-strategy";
 import {ChargingStrategyAnxiety} from "./charging-strategy-anxiety";
 import {ChargingStrategyOpportunistic} from "./charging-strategy-opportunistic";
 import {ChargingStrategyOptimal} from "./charging-strategy-optimal";
 
 export class ChargingStrategyFactory {
 
-  static createRandomStrategy(): ChargingStrategy {
-    const strategyIndex = Math.floor(Math.random()*AbstractChargingStrategy.strategies.length);
-    const strategy = AbstractChargingStrategy.strategies[strategyIndex];
+  static createRandomStrategy(strategies: Strategy[]): ChargingStrategy {
+    const strategyIndex = Math.floor(Math.random()*strategies.length);
+    const strategy = strategies[strategyIndex];
     return ChargingStrategyFactory.createStrategy(strategy);
   }
 

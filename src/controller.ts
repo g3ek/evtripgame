@@ -3,6 +3,7 @@ import {Status, Vehicle} from "./vehicle";
 import {ChargingStation} from "./charging-station";
 import {Clock} from "./clock";
 import {EvtripEventDispatcher} from "./evtrip-event-dispatcher";
+import {LevelScore} from "./level-score";
 
 export class Controller {
 
@@ -11,11 +12,16 @@ export class Controller {
   private routeGraphics: RouteGraphics;
   private clock: Clock;
   private eventDispatcher: EvtripEventDispatcher;
+  private levelScore: LevelScore;
 
-  constructor(routeGraphics: RouteGraphics, clock: Clock, eventDispatcher: EvtripEventDispatcher) {
+  constructor(routeGraphics: RouteGraphics,
+              clock: Clock,
+              eventDispatcher: EvtripEventDispatcher,
+              levelScore: LevelScore) {
     this.routeGraphics = routeGraphics;
     this.clock = clock;
     this.eventDispatcher = eventDispatcher;
+    this.levelScore = levelScore;
   }
 
   addVehicle(vehicle: Vehicle): void {
@@ -113,19 +119,18 @@ export class Controller {
         // 3600000 to convert hour to ms
         const actualPower = vehicle.getPowerRelativeToSocAndLosses(chargingStation.power);
         const energy = (actualPower / 3600000) * chargingTime;
+        this.levelScore.addMoney(energy, chargingStation.power);
         vehicle.soc += energy;
         if (vehicle.soc >= vehicle.capacity) {
           vehicle.soc = vehicle.capacity;
           this.stopCharging(vehicle, chargingStation);
           this.activateWaitingVehicle(chargingStation);
-          this.eventDispatcher.emit('updatechargingstation', chargingStation);
         } else {
           let chargingStrategy = vehicle.chargingStrategy;
           let doINeedToContinueChargingHere = chargingStrategy.determineChargingNeed(this.chargingStations, vehicle, chargingStation, vehicle.totalDistance);
           if (!doINeedToContinueChargingHere) {
             this.stopCharging(vehicle, chargingStation);
             this.activateWaitingVehicle(chargingStation);
-            this.eventDispatcher.emit('updatechargingstation', chargingStation);
           }
         }
       }

@@ -3,6 +3,7 @@ import {Clock} from "./clock";
 import {Scene} from "phaser";
 import {EvtripEventDispatcher} from "./evtrip-event-dispatcher";
 import {ChargingStrategyFactory} from "./charging-strategy-factory";
+import {LevelScore} from "./level-score";
 
 export class VehicleFactory {
 
@@ -12,10 +13,12 @@ export class VehicleFactory {
   private clock: Clock;
   private eventDispatcher: EvtripEventDispatcher;
   private newCarTimerEvent: Phaser.Time.TimerEvent;
+  private levelScore: LevelScore;
 
-  constructor(clock: Clock, scene: Phaser.Scene, eventDispatcher: EvtripEventDispatcher) {
+  constructor(clock: Clock, scene: Phaser.Scene, eventDispatcher: EvtripEventDispatcher, levelScore: LevelScore) {
     this.clock = clock;
     this.eventDispatcher = eventDispatcher;
+    this.levelScore = levelScore;
     this.createNewCarTimerEvent(scene);
   }
 
@@ -32,9 +35,10 @@ export class VehicleFactory {
     consumption *= index;
     const directionup = Math.random()*2 < 1;
     const status = Status.MOVING;
-    const capacity: number = VehicleFactory.CAPACITIES[Math.floor(Math.random()*VehicleFactory.CAPACITIES.length)];
+    const capacities = this.levelScore.getLevel().capacities;
+    const capacity: number = capacities[Math.floor(Math.random()*capacities.length)];
     const startSOC = Phaser.Math.Between(10000, capacity); // minimum 10kWh soc
-    const chargingStrategy = ChargingStrategyFactory.createRandomStrategy();
+    const chargingStrategy = ChargingStrategyFactory.createRandomStrategy(this.levelScore.getLevel().chargingStrategies);
     const throttleAtSoC = Phaser.Math.Between(capacity*0.6, capacity*0.9); // throttle charging between 60% and 90%
 
     const vehicle = new Vehicle();
@@ -53,14 +57,15 @@ export class VehicleFactory {
   }
 
   private createNewCarTimerEvent(scene: Scene) {
+    let maxTimeNewVehicle = this.levelScore.getLevel().maxTimeNewVehicle;
     this.newCarTimerEvent = scene.time.addEvent({
-      delay: Phaser.Math.Between(120000, 660000),
+      delay: Phaser.Math.Between(maxTimeNewVehicle/2, maxTimeNewVehicle),
       loop: true,
       callback: () => {
         let vehicle = this.create();
         this.eventDispatcher.emit('newvehicle', vehicle);
       },
-      startAt: 120000
+      startAt: maxTimeNewVehicle
     });
   }
 

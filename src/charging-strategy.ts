@@ -16,8 +16,6 @@ export interface ChargingStrategy {
 
 export abstract class AbstractChargingStrategy implements ChargingStrategy {
 
-  static strategies: Strategy[] = [Strategy.OPPORTUNISTIC, Strategy.ANXIETY, Strategy.OPTIMAL];
-
   abstract determineChargingNeed(chargingStations: ChargingStation[], vehicle: Vehicle, chargingStation: ChargingStation, newDistance: number): boolean;
 
   abstract type(): Strategy;

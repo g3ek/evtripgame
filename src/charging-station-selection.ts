@@ -1,12 +1,13 @@
 import Graphics = Phaser.GameObjects.Graphics;
 import Container = Phaser.GameObjects.Container;
+import Text = Phaser.GameObjects.Text;
 import {Scene} from "phaser";
-import {ChargingStationFactory} from "./charging-station-factory";
 import {EvtripEventDispatcher} from "./evtrip-event-dispatcher";
 import {RouteGraphics} from "./route-graphics";
 import {ChoseNumberComponent} from "./chose-number-component";
 import {CommonStyle} from "./common-style";
 import {GameButton} from "./game-button";
+import {LevelScore} from "./level-score";
 
 export class ChargingStationSelection {
 
@@ -14,9 +15,13 @@ export class ChargingStationSelection {
   private backScreen: Graphics;
   private distanceSelected: number = null;
   private container: Container;
+  private levelScore: LevelScore;
+  private titleMessage: Text;
+  private choseCapacity: ChoseNumberComponent;
 
-  constructor(eventDispatcher: EvtripEventDispatcher) {
+  constructor(eventDispatcher: EvtripEventDispatcher, levelScore: LevelScore) {
     this.eventDispatcher = eventDispatcher;
+    this.levelScore = levelScore;
   }
 
   create(scene: Scene): void {
@@ -35,18 +40,18 @@ export class ChargingStationSelection {
     this.backScreen.setDepth(1);
     this.container.add(this.backScreen);
 
-    let title = scene.make.text({});
-    title.setText("Add charging station")
-    title.setPosition(10, 10);
-    title.setStyle(CommonStyle.NORMAL_STYLE); // need to set, probably a bug
-    this.container.add(title);
+    this.titleMessage = scene.make.text({});
+    this.titleMessage.setText("Add charging station")
+    this.titleMessage.setPosition(10, 10);
+    this.titleMessage.setStyle(CommonStyle.NORMAL_STYLE); // need to set, probably a bug
+    this.container.add(this.titleMessage);
 
-    let choseCapacity = new ChoseNumberComponent(ChargingStationFactory.CAPACITIES);
-    let containerCapacity = choseCapacity.create(scene, 190);
+    this.choseCapacity = new ChoseNumberComponent(this.levelScore.getLevel().capacities);
+    let containerCapacity = this.choseCapacity.create(scene, 190);
     this.container.add(containerCapacity);
     containerCapacity.setPosition(10, 50);
 
-    let slotValues = [1, 2, 3, 4, 5, 6, 7, 9, 10];
+    let slotValues = [2, 4, 8, 10];
     let choseSlots = new ChoseNumberComponent(slotValues);
     let containerSlots = choseSlots.create(scene, 110);
     this.container.add(containerSlots);
@@ -73,10 +78,18 @@ export class ChargingStationSelection {
     addButtonContainer.setPosition(10, 220);
     addButton.setAction(() => {
       if (this.distanceSelected !== null) {
-        let power = choseCapacity.getValue();
+        let power = this.choseCapacity.getValue();
         let distance = this.distanceSelected;
         let slots = choseSlots.getValue();
-        this.eventDispatcher.emit('addchargingstation', power, distance, slots);
+        const requiredMoney = power * (slots/2);
+        if (requiredMoney <= this.levelScore.money) {
+          this.eventDispatcher.emit('addchargingstation', power, distance, slots);
+          this.levelScore.buy(requiredMoney);
+        } else {
+          this.titleMessage.setText("Not enough $!");
+        }
+      } else {
+        this.titleMessage.setText("Click on road!");
       }
     });
     const closeButtonContainer = scene.make.container({});
@@ -87,6 +100,10 @@ export class ChargingStationSelection {
     closeButton.setAction(() => {
       this.show();
     });
+  }
+
+  nextLevel() {
+    this.choseCapacity.values = this.levelScore.getLevel().capacities;
   }
 
   private validate(messageElement: HTMLParagraphElement, distanceField: HTMLInputElement) {
@@ -104,6 +121,7 @@ export class ChargingStationSelection {
   }
 
   show() {
+    this.titleMessage.setText("Add charging station");
     this.container.visible = !this.container.visible
   }
 }
