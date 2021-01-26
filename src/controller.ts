@@ -59,9 +59,9 @@ export class Controller {
       if (!needToCharge) {
         vehicle.distance = distance;
         if (vehicle.totalDistance > RouteGraphics.DISTANCE_METRES) {
-          this.eventDispatcher.emit('vehiclefinished', vehicle);
           this.routeGraphics.removeVehicle(vehicle);
           this._vehicles = this._vehicles.filter(v => v !== vehicle);
+          this.eventDispatcher.emit('vehiclefinished', vehicle);
         }
       }
     }
@@ -162,6 +162,7 @@ export class Controller {
     chargingStation.removeWaiting(vehicle);
     this.startCharging(chargingStation, vehicle);
     this.routeGraphics.renderChargingVehicle(vehicle, chargingStation);
+    this.eventDispatcher.emit("updatechargingstation", chargingStation);
   }
 
   private afterChargingOrMoving(vehicle: Vehicle): void {

@@ -15,13 +15,13 @@ export class LevelScore {
   constructor(eventDispatcher: EvtripEventDispatcher) {
     this._eventDispatcher = eventDispatcher;
     const level1 = new Level(1, 2000000, 100000,
-      [20000], 5, [Strategy.OPTIMAL]);
+      [20000], 15, [Strategy.OPTIMAL]);
     const level2 = new Level(2, 1500000, 250000,
-      [20000, 50000], 15, [Strategy.OPTIMAL, Strategy.OPPORTUNISTIC]);
+      [20000, 50000], 30, [Strategy.OPTIMAL, Strategy.OPPORTUNISTIC]);
     const level3 = new Level(3, 1000000, 500000,
-      [20000, 50000, 75000], 30, [Strategy.OPTIMAL, Strategy.OPPORTUNISTIC]);
+      [20000, 50000, 75000], 45, [Strategy.OPTIMAL, Strategy.OPPORTUNISTIC]);
     const level4 = new Level(4, 1000000, 750000,
-      [20000, 50000, 75000, 100000], 60, [Strategy.OPTIMAL, Strategy.OPPORTUNISTIC, Strategy.ANXIETY]);
+      [20000, 50000, 75000, 100000], 55, [Strategy.OPTIMAL, Strategy.OPPORTUNISTIC, Strategy.ANXIETY]);
 
     this._levels.push(level1, level2, level3);
   }

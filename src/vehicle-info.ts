@@ -19,6 +19,7 @@ export class VehicleInfo {
   private consumptionValue: Text;
   private strategyValue: Text;
   private thresholdValue: Text;
+  private speedValue: Text;
   private subscriptions: Subscription[] = [];
   private vehicle: Vehicle = null;
   private routeGraphics: RouteGraphics;
@@ -37,16 +38,16 @@ export class VehicleInfo {
         color: 0xffffff
       }
     });
-    backScreen.fillRoundedRect(0, 0, 400, 280, 10);
+    backScreen.fillRoundedRect(0, 0, 400, 310, 10);
     backScreen.lineStyle(5, 0x000000);
-    backScreen.strokeRoundedRect(0, 0, 400, 280);
+    backScreen.strokeRoundedRect(0, 0, 400, 310);
     backScreen.setDepth(1);
     this.container.add(backScreen);
 
     const socLabel = this.scene.make.text({});
     socLabel.setPosition(10, 10);
     socLabel.setStyle(CommonStyle.NORMAL_STYLE);
-    socLabel.setText('SoC');
+    socLabel.setText('SoC %');
     this.container.add(socLabel);
 
     this.socValue = this.scene.make.text({});
@@ -57,7 +58,7 @@ export class VehicleInfo {
     const rangeLabel = this.scene.make.text({});
     rangeLabel.setPosition(10, 40);
     rangeLabel.setStyle(CommonStyle.NORMAL_STYLE);
-    rangeLabel.setText('Range');
+    rangeLabel.setText('Range kms');
     this.container.add(rangeLabel);
 
     this.rangeValue = this.scene.make.text({});
@@ -68,7 +69,7 @@ export class VehicleInfo {
     const capacityLabel = this.scene.make.text({});
     capacityLabel.setPosition(10, 70);
     capacityLabel.setStyle(CommonStyle.NORMAL_STYLE);
-    capacityLabel.setText('Capacity');
+    capacityLabel.setText('kWh');
     this.container.add(capacityLabel);
 
     this.capacityValue = this.scene.make.text({});
@@ -76,41 +77,52 @@ export class VehicleInfo {
     this.capacityValue.setStyle(CommonStyle.NORMAL_STYLE);
     this.container.add(this.capacityValue);
 
+    const speedLabel = this.scene.make.text({});
+    speedLabel.setPosition(10, 100);
+    speedLabel.setStyle(CommonStyle.NORMAL_STYLE);
+    speedLabel.setText('Kph');
+    this.container.add(speedLabel);
+
+    this.speedValue = this.scene.make.text({});
+    this.speedValue.setPosition(200, 100);
+    this.speedValue.setStyle(CommonStyle.NORMAL_STYLE);
+    this.container.add(this.speedValue);
+
     const consumptionLabel = this.scene.make.text({});
-    consumptionLabel.setPosition(10, 100);
+    consumptionLabel.setPosition(10, 130);
     consumptionLabel.setStyle(CommonStyle.NORMAL_STYLE);
-    consumptionLabel.setText('Consumption');
+    consumptionLabel.setText('Wh/km');
     this.container.add(consumptionLabel);
 
     this.consumptionValue = this.scene.make.text({});
-    this.consumptionValue.setPosition(200, 100);
+    this.consumptionValue.setPosition(200, 130);
     this.consumptionValue.setStyle(CommonStyle.NORMAL_STYLE);
     this.container.add(this.consumptionValue);
 
     const thresholdLabel = this.scene.make.text({});
-    thresholdLabel.setPosition(10, 130);
+    thresholdLabel.setPosition(10, 160);
     thresholdLabel.setStyle(CommonStyle.NORMAL_STYLE);
-    thresholdLabel.setText('Threshold');
+    thresholdLabel.setText('Threshold %');
     this.container.add(thresholdLabel);
 
     this.thresholdValue = this.scene.make.text({});
-    this.thresholdValue.setPosition(200, 130);
+    this.thresholdValue.setPosition(200, 160);
     this.thresholdValue.setStyle(CommonStyle.NORMAL_STYLE);
     this.container.add(this.thresholdValue);
 
     const strategyLabel = this.scene.make.text({});
-    strategyLabel.setPosition(10, 160);
+    strategyLabel.setPosition(10, 190);
     strategyLabel.setStyle(CommonStyle.NORMAL_STYLE);
     strategyLabel.setText('Strategy');
     this.container.add(strategyLabel);
 
     this.strategyValue = this.scene.make.text({});
-    this.strategyValue.setPosition(200, 160);
+    this.strategyValue.setPosition(200, 190);
     this.strategyValue.setStyle(CommonStyle.NORMAL_STYLE);
     this.container.add(this.strategyValue);
 
     const closeButtonContainer = this.scene.make.container({});
-    closeButtonContainer.setPosition(120, 210);
+    closeButtonContainer.setPosition(120, 240);
     const closeButton = new GameButton();
     closeButton.create(this.scene, closeButtonContainer, "Close", 120);
     closeButton.setAction(() => {
@@ -139,11 +151,13 @@ export class VehicleInfo {
     vehicleSprite.select(true);
     let range = vehicle.getRange();
     let socPercent = vehicle.getFormattedSoc();
+    const speed = Math.floor(vehicle.mpsSpeed*3.6);
     this.capacityValue.setText('' + (vehicle.capacity / 1000));
     this.rangeValue.setText('' + range);
     this.socValue.setText('' + socPercent);
     this.consumptionValue.setText('' + vehicle.getFormattedConsumption());
     this.thresholdValue.setText('' + vehicle.getFormattedThreshold());
+    this.speedValue.setText('' + speed);
     this.strategyValue.setText(AbstractChargingStrategy.getLabel(vehicle.chargingStrategy.type()));
     this.container.setVisible(true);
     if (vehicle.status === Status.CHARGING || vehicle.status === Status.MOVING) {
