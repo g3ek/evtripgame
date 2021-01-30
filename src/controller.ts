@@ -54,9 +54,6 @@ export class Controller {
       // /1000 b/c consumtion is per km
       const wattHoursPerMeter = (vehicle.consumption / 1000) * distance;
       vehicle.soc = vehicle.startSOC - wattHoursPerMeter;
-      if (vehicle.soc < 0) {
-        this.eventDispatcher.emit("gameover");
-      }
       const needToCharge = this.isChargingNecessaryHandler(vehicle, distance);
       if (!needToCharge) {
         vehicle.distance = distance;
@@ -64,6 +61,8 @@ export class Controller {
           this.routeGraphics.removeVehicle(vehicle);
           this._vehicles = this._vehicles.filter(v => v !== vehicle);
           this.eventDispatcher.emit('vehiclefinished', vehicle);
+        } else if (vehicle.soc < 0) {
+          this.eventDispatcher.emit("gameover");
         }
       }
     }
