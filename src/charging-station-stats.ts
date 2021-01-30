@@ -22,18 +22,22 @@ export class ChargingStationStats {
   private clock: Clock;
   private infoText: Text;
 
-  constructor(scene: Scene, routeGraphics: RouteGraphics, x: number, y: number, clock: Clock) {
+  constructor(scene: Scene, routeGraphics: RouteGraphics, clock: Clock) {
     this.scene = scene;
     this.routeGraphics = routeGraphics;
     this.clock = clock;
+
+  }
+
+  create(x: number, y: number): void {
     this.container = this.scene.add.container(x, y);
     this.container.setVisible(false);
-    this.textsGroup = scene.add.group();
+    this.textsGroup = this.scene.add.group();
     this.makeBackGround();
     this.makeHeaders();
   }
 
-  makeHeaders() {
+  makeHeaders(): void {
     const socHeader = this.scene.make.text({});
     socHeader.setStyle(CommonStyle.NORMAL_STYLE);
     socHeader.setPosition(20, 50);
@@ -206,5 +210,12 @@ export class ChargingStationStats {
     textField.setPosition(x, y);
     textField.setVisible(true);
     return textField;
+  }
+
+  stop() {
+    this.subscriptions.forEach(s => {
+      s.unsubscribe();
+    });
+    this.subscriptions = [];
   }
 }

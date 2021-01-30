@@ -15,6 +15,7 @@ export class Clock {
 
   constructor(scene: Scene) {
     this.scene = scene;
+    this.pauseTotal = scene.time.now; // between scenes, time keeps running!
   }
 
   create() {

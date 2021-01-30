@@ -1,5 +1,8 @@
 import "phaser";
 import {MainScene} from "./mainScene";
+import {StartScene} from "./start-scene";
+import {HelpScene} from "./help-scene";
+import {StrategiesHelpScene} from "./strategies-help-scene";
 import GameConfig = Phaser.Types.Core.GameConfig;
 import ScaleModes = Phaser.Scale.ScaleModes;
 import Center = Phaser.Scale.Center;
@@ -10,7 +13,7 @@ const config: GameConfig = {
   height: 1280,
   parent: "game",
   backgroundColor: "eaeafa",
-  scene: [MainScene],
+  scene: [StartScene, MainScene, HelpScene, StrategiesHelpScene],
   scale: {
     parent: "game",
     mode: ScaleModes.FIT,

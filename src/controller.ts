@@ -53,8 +53,10 @@ export class Controller {
       const distance = (delta / 1000) * vehicle.mpsSpeed;
       // /1000 b/c consumtion is per km
       const wattHoursPerMeter = (vehicle.consumption / 1000) * distance;
-      let soc = vehicle.startSOC - wattHoursPerMeter;
-      vehicle.soc = soc;
+      vehicle.soc = vehicle.startSOC - wattHoursPerMeter;
+      if (vehicle.soc < 0) {
+        this.eventDispatcher.emit("gameover");
+      }
       const needToCharge = this.isChargingNecessaryHandler(vehicle, distance);
       if (!needToCharge) {
         vehicle.distance = distance;
@@ -92,7 +94,6 @@ export class Controller {
         }
         this.eventDispatcher.emit('updatechargingstation', chargingStation);
         vehicle.latestChargingStation = chargingStation;
-
         return true;
       }
     }

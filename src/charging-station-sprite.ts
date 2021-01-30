@@ -103,4 +103,8 @@ export class ChargingStationSprite {
     this._graphics.closePath()
     this._graphics.fillPath();
   }
+
+  destroy() {
+    this._container.destroy();
+  }
 }

@@ -14,6 +14,7 @@ import {VehicleInfo} from "./vehicle-info";
 import {ChoseNumberComponent} from "./chose-number-component";
 import {LevelScore} from "./level-score";
 import {CommonStyle} from "./common-style";
+import {BigButton} from "./big-button";
 import Text = Phaser.GameObjects.Text;
 
 export class MainScene extends Phaser.Scene {
@@ -26,99 +27,123 @@ export class MainScene extends Phaser.Scene {
   private scoreText: Text;
   private moneyText: Text;
   private levelText:Text;
-  private levelScore: LevelScore;
+  private levelScore: LevelScore = null;
+  private clock: Clock;
+  private vehicleInfo: VehicleInfo;
+  private chargingStationSelection: ChargingStationSelection;
+  private timeFactorChooser: ChoseNumberComponent;
+  private pauseButton: GameButton;
 
   constructor(config: string | Phaser.Types.Scenes.SettingsConfig) {
-    super(config);
+    super({
+      key: "thegame"
+    });
   }
 
-  preload(): void {
-    this.load.html("chargingstationselection", "assets/html/chargingstationselection.html");
-    this.load.html("chargingstationstats", "assets/html/chargingstationtable.html");
-    this.load.html("vehiclestats", "assets/html/vehiclestable.html");
+  init(data: Object): void {
+    if (this.levelScore !== null) {
+      this.levelScore.reset();
+    }
   }
 
   create(): void {
-    this.levelScore = new LevelScore(this.eventDispatcher);
-    let clock = new Clock(this);
-    clock.create();
-    this.routeGraphics = new RouteGraphics(this, this.eventDispatcher, clock, this.levelScore.getLevel().distance);
-    this.vehicleFactory = new VehicleFactory(clock, this, this.eventDispatcher, this.levelScore);
-    this.controller = new Controller(this.routeGraphics, clock, this.eventDispatcher, this.levelScore);
-    let timeFactorChooser = new ChoseNumberComponent([1, 5, 10, 15, 20, 25, 35, 40]);
-    let timeChooserContainer = timeFactorChooser.create(this, 140, 'x', true);
-    timeChooserContainer.setPosition(30, 80);
-    timeFactorChooser.setAction(() => {
-      let value = timeFactorChooser.getValue();
-      clock.timeScale = value;
-      this.vehicleFactory.updateNewCarTimerEvent(value);
-    });
-    this.levelText = this.add.text(30, 30, "Level: 1", CommonStyle.NORMAL_STYLE);
-    this.moneyText = this.add.text(250, 30, "$: 0", CommonStyle.NORMAL_STYLE);
-    this.scoreText = this.add.text(500, 30, "Score: 0", CommonStyle.NORMAL_STYLE);
+      this.eventDispatcher.destroy(); // very important to clean up the scene when restarting it!
+      this.levelScore = new LevelScore(this.eventDispatcher);
+      this.clock = new Clock(this);
+      this.clock.create();
+      this.routeGraphics = new RouteGraphics(this, this.eventDispatcher, this.clock, this.levelScore.getLevel().distance);
+      this.routeGraphics.render();
+      this.vehicleFactory = new VehicleFactory(this.clock, this, this.eventDispatcher, this.levelScore);
+      this.controller = new Controller(this.routeGraphics, this.clock, this.eventDispatcher, this.levelScore);
+      this.chargingStationStats = new ChargingStationStats(this, this.routeGraphics, this.clock);
+      this.chargingStationStats.create(30, 250);
+      this.vehicleInfo = new VehicleInfo(this, this.routeGraphics);
+      this.vehicleInfo.create(70, 230);
+      this.chargingStationSelection = new ChargingStationSelection(this.eventDispatcher, this.levelScore);
+      this.chargingStationSelection.create(this);
+      this.timeFactorChooser = new ChoseNumberComponent([1, 5, 10, 15, 20, 25, 35, 40]);
+      let timeChooserContainer = this.timeFactorChooser.create(this, 140, 'x', true);
+      timeChooserContainer.setPosition(30, 80);
+      this.timeFactorChooser.setAction(() => {
+        let value = this.timeFactorChooser.getValue();
+        this.clock.timeScale = value;
+        this.vehicleFactory.updateNewCarTimerEvent(value);
+      });
+      this.levelText = this.add.text(30, 30, "Level: 1", CommonStyle.NORMAL_STYLE);
+      this.moneyText = this.add.text(250, 30, "$: 0", CommonStyle.NORMAL_STYLE);
+      this.scoreText = this.add.text(500, 30, "Score: 0", CommonStyle.NORMAL_STYLE);
+      const pauseContainer = this.add.container(30, 140);
+      this.pauseButton = new GameButton();
+      this.pauseButton.create(this, pauseContainer, "Pause", 150);
+      this.pauseButton.setAction(() => {
+        this.time.paused = !this.time.paused;
+        if (this.time.paused) {
+          this.tweens.pauseAll();
+          this.pauseButton.setText("Start");
+          this.clock.pause();
+        } else {
+          this.tweens.resumeAll();
+          this.pauseButton.setText("Pause");
+        }
+      });
+      const gameOverButton = new BigButton();
+      gameOverButton.create(this, true);
+      gameOverButton.visible(false);
+      gameOverButton.setText("Game Over");
+      gameOverButton.setAction(() => {
+        this.scene.start("start");
+      });
+      const addStationContainer = this.add.container(190, 140);
+      let addStationButton = new GameButton();
+      addStationButton.create(this, addStationContainer, "Add", 100);
+      addStationButton.setAction(() => {
+        this.chargingStationSelection.show();
+      });
 
-    let chargingStationSelection = new ChargingStationSelection(this.eventDispatcher, this.levelScore);
-    chargingStationSelection.create(this);
-    this.chargingStationStats = new ChargingStationStats(this, this.routeGraphics, 30, 250, clock);
-    let vehicleInfo = new VehicleInfo(this, this.routeGraphics, 70, 230);
-    vehicleInfo.create();
-    this.routeGraphics.render();
-    const pauseContainer = this.add.container(30, 140);
-    let pauseButton = new GameButton();
-    pauseButton.create(this, pauseContainer, "Pause", 150);
-    pauseButton.setAction(() => {
-      this.time.paused = !this.time.paused;
-      if (this.time.paused) {
-        this.tweens.pauseAll();
-        pauseButton.setText("Start");
-        clock.pause();
-      } else {
-        this.tweens.resumeAll();
-        pauseButton.setText("Pause");
-      }
-    });
-    const addStationContainer = this.add.container(190, 140);
-    let addStationButton = new GameButton();
-    addStationButton.create(this, addStationContainer, "Add", 100);
-    addStationButton.setAction(() => {
-      chargingStationSelection.show();
-    });
-    this.eventDispatcher.on("showvehiclestats", (vehicle: Vehicle) => {
-      vehicleInfo.show(vehicle);
-    });
-    this.eventDispatcher.on("addchargingstation", (power: number, distance: number, slots: number) => {
-      this.addChargingStation(power, distance, slots);
-    });
-    this.eventDispatcher.on("newvehicle", (vehicle: Vehicle) => {
-      this.addVehicle(vehicle);
-      //vehicleStats.refresh(this.controller.vehicles);
-    });
-    this.eventDispatcher.on("showchargingstationstats", (chargingstation: ChargingStation) => {
-      this.showChargingStationStats(chargingstation);
-    });
-    this.eventDispatcher.on("updatechargingstation", (chargingstation: ChargingStation) => {
-      this.chargingStationStats.updateVehicles(chargingstation);
-    });
-    this.eventDispatcher.on("vehiclefinished", (vehicle: Vehicle) => {
-      this.levelScore.addToScore(5);
-      this.scoreText.setText("Score: "+this.levelScore.score);
-      this.levelScore.checkNextLevel();
-      vehicleInfo.hide(vehicle);
-    });
-    this.eventDispatcher.on("nextlevel", () => {
-      this.levelText.setText("Level: "+this.levelScore.level);
-      chargingStationSelection.nextLevel();
-      RouteGraphics.DISTANCE_METRES = this.levelScore.getLevel().distance;
-      this.routeGraphics.nextLevel();
-    });
-
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden && !this.time.paused) {
+      this.eventDispatcher.on("showvehiclestats", (vehicle: Vehicle) => {
+        this.vehicleInfo.show(vehicle);
+      });
+      this.eventDispatcher.on("addchargingstation", (power: number, distance: number, slots: number) => {
+        this.addChargingStation(power, distance, slots);
+      });
+      this.eventDispatcher.on("newvehicle", (vehicle: Vehicle) => {
+        this.addVehicle(vehicle);
+      });
+      this.eventDispatcher.on("showchargingstationstats", (chargingstation: ChargingStation) => {
+        this.showChargingStationStats(chargingstation);
+      });
+      this.eventDispatcher.on("updatechargingstation", (chargingstation: ChargingStation) => {
+        this.chargingStationStats.updateVehicles(chargingstation);
+      });
+      this.eventDispatcher.on("vehiclefinished", (vehicle: Vehicle) => {
+        this.levelScore.addToScore(5);
+        this.scoreText.setText("Score: "+this.levelScore.score);
+        this.levelScore.checkNextLevel();
+        this.vehicleInfo.hide(vehicle);
+      });
+      this.eventDispatcher.on("nextlevel", () => {
+        this.levelText.setText("Level: "+this.levelScore.level);
+        this.chargingStationSelection.nextLevel();
+        RouteGraphics.DISTANCE_METRES = this.levelScore.getLevel().distance;
+        this.routeGraphics.nextLevel();
+      });
+      this.eventDispatcher.on("gameover", () => {
         this.time.paused = true;
-        pauseButton.setText("Start");
-        clock.pause();
-      }
-    });
+        this.tweens.pauseAll();
+        this.clock.pause();
+        this.chargingStationStats.stop();
+        this.vehicleInfo.stop();
+        gameOverButton.setText("Game Over");
+        gameOverButton.visible(true);
+      });
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden && !this.time.paused) {
+          this.time.paused = true;
+          this.pauseButton.setText("Start");
+          this.clock.pause();
+        }
+      });
+      this.time.paused = false; // unpause, must do after restarting scene
   }
 
   update(time: number, delta: number) {

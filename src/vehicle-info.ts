@@ -24,15 +24,15 @@ export class VehicleInfo {
   private vehicle: Vehicle = null;
   private routeGraphics: RouteGraphics;
 
-  constructor(scene: Scene, routeGraphics: RouteGraphics, x: number, y: number) {
+  constructor(scene: Scene, routeGraphics: RouteGraphics) {
     this.routeGraphics = routeGraphics;
     this.scene = scene;
-    this.container = scene.add.container(x, y);
-    this.container.setDepth(3); // above vehicle sprites
-    this.container.setVisible(false);
   }
 
-  create(): void {
+  create(x: number, y: number): void {
+    this.container = this.scene.add.container(x, y);
+    this.container.setDepth(3); // above vehicle sprites
+    this.container.setVisible(false);
     let backScreen = this.scene.make.graphics({
       fillStyle: {
         color: 0xffffff
@@ -186,5 +186,12 @@ export class VehicleInfo {
       this.vehicle = null;
       this.container.setVisible(false);
     }
+  }
+
+  stop() {
+    this.subscriptions.forEach(s => {
+      s.unsubscribe();
+    });
+    this.subscriptions = [];
   }
 }

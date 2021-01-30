@@ -65,7 +65,7 @@ export class RouteGraphics {
     const scrollWidth = 240;
     let background = this.scene.add.graphics({
       fillStyle: {
-        color: 0xffffff,
+        color: 0xdadaea,
         alpha: 1
       }
     });
@@ -187,6 +187,9 @@ export class RouteGraphics {
           }
         });
         css.setupWaitingTimeout(minBlinktime);
+        if (minBlinktime === 128) {
+          this.eventDispatcher.emit("gameover");
+        }
       } else {
         css.stopBlinker();
       }
@@ -224,5 +227,14 @@ export class RouteGraphics {
     const chargingStationSprite = this.findChargingStationSprite(chargingStation);
     vehicleSprite.visible(false);
     chargingStationSprite.renderVehicle();
+  }
+
+  reset(): void {
+    this.vehicleSprites.forEach(vs => {
+      vs.destroy();
+    });
+    this.chargingStationSprites.forEach(cs => {
+      cs.destroy();
+    });
   }
 }

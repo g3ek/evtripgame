@@ -16,11 +16,11 @@ export class LevelScore {
     this._eventDispatcher = eventDispatcher;
     const level1 = new Level(1, 2000000, 100000,
       [20000], 15, [Strategy.OPTIMAL]);
-    const level2 = new Level(2, 1500000, 250000,
+    const level2 = new Level(2, 1500000, 150000,
       [20000, 50000], 30, [Strategy.OPTIMAL, Strategy.OPPORTUNISTIC]);
-    const level3 = new Level(3, 1000000, 500000,
+    const level3 = new Level(3, 1000000, 250000,
       [20000, 50000, 75000], 45, [Strategy.OPTIMAL, Strategy.OPPORTUNISTIC]);
-    const level4 = new Level(4, 1000000, 750000,
+    const level4 = new Level(4, 1000000, 500000,
       [20000, 50000, 75000, 100000], 55, [Strategy.OPTIMAL, Strategy.OPPORTUNISTIC, Strategy.ANXIETY]);
 
     this._levels.push(level1, level2, level3);
@@ -71,5 +71,11 @@ export class LevelScore {
       this._level++;
       this._eventDispatcher.emit("nextlevel");
     }
+  }
+
+  reset(): void {
+    this._level = 1;
+    this._score = 0;
+    this._money = 0;
   }
 }
