@@ -111,7 +111,7 @@ export class RouteGraphics {
     });
     background.on('pointerup', (pointer: Pointer) => {
       let worldPoint = this.roadCamera.getWorldPoint(pointer.x, pointer.y);
-      const distance = (worldPoint.y-this.margin) * this.distanceToPixelsFactor;
+      const distance = (worldPoint.y-(this.margin+this.startY)) * this.distanceToPixelsFactor;
       this.eventDispatcher.emit('distanceselected', distance);
     });
   }

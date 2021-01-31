@@ -43,6 +43,7 @@ export class MainScene extends Phaser.Scene {
   init(data: Object): void {
     if (this.levelScore !== null) {
       this.levelScore.reset();
+      this.time.paused = false; // unpause, must do after restarting scene
     }
   }
 
@@ -143,7 +144,6 @@ export class MainScene extends Phaser.Scene {
           this.clock.pause();
         }
       });
-      this.time.paused = false; // unpause, must do after restarting scene
   }
 
   update(time: number, delta: number) {

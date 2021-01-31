@@ -2,6 +2,11 @@ import {Scene} from "phaser";
 import {CommonStyle} from "./common-style";
 import Text = Phaser.GameObjects.Text;
 
+/**
+ * Keeps track of pause time
+ * Keeps its own clock (see _time)
+ * This clock's time also multiplies delta's with a time scale (_timeScale)
+ */
 export class Clock {
 
   private scene: Phaser.Scene;
@@ -15,7 +20,6 @@ export class Clock {
 
   constructor(scene: Scene) {
     this.scene = scene;
-    this.pauseTotal = scene.time.now; // between scenes, time keeps running!
   }
 
   create() {
@@ -30,7 +34,10 @@ export class Clock {
   }
 
   update(): void {
-    if (this.pauseStart != 0) {
+    if (this.previousRealTime === 0) { // between scenes, time keeps running!
+      this.previousRealTime = this.scene.time.now; // so we need the current time for the correct delta
+    }
+    if (this.pauseStart != 0) { // check if we need to resume
       this.pauseTotal += (this.scene.time.now - this.pauseStart);
       this.pauseStart = 0;
       this.previousRealTime = (this.scene.time.now - this.pauseTotal);
