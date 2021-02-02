@@ -23,11 +23,11 @@ export class LevelScore {
     const level4 = new Level(4, 1000000, 500000,
       [20000, 50000, 75000, 100000], 55, [Strategy.OPTIMAL, Strategy.OPPORTUNISTIC, Strategy.ANXIETY]);
 
-    this._levels.push(level1, level2, level3);
+    this._levels.push(level1, level2, level3, level4);
   }
 
   getLevel(): Level {
-    return this._levels[this._level-1];
+    return this._levels[this._level - 1];
   }
 
   set level(value: number) {
@@ -51,7 +51,7 @@ export class LevelScore {
   }
 
   addMoney(energy: number, power: number) {
-    this._money += (energy * (power/20000));
+    this._money += (energy * (power / 20000));
   }
 
   buy(money: number) {
@@ -67,7 +67,8 @@ export class LevelScore {
   }
 
   checkNextLevel() {
-    if (this.score >= this.getLevel().nextLevelScore) {
+    if (this.score >= this.getLevel().nextLevelScore &&
+      this._level != this._levels.length) {
       this._level++;
       this._eventDispatcher.emit("nextlevel");
     }

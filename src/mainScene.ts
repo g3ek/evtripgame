@@ -79,9 +79,10 @@ export class MainScene extends Phaser.Scene {
       this.pauseButton.setAction(() => {
         this.time.paused = !this.time.paused;
         if (this.time.paused) {
+          this.pauseButton.setText("Pausing...")
           this.tweens.pauseAll();
-          this.pauseButton.setText("Start");
           this.clock.pause();
+          this.pauseButton.setText("Resume");
         } else {
           this.tweens.resumeAll();
           this.pauseButton.setText("Pause");

@@ -47,7 +47,7 @@ export class ChargingStationStats {
     const rangeHeader = this.scene.make.text({});
     rangeHeader.setStyle(CommonStyle.NORMAL_STYLE);
     rangeHeader.setPosition(60, 50);
-    rangeHeader.setText("Kms");
+    rangeHeader.setText("Km");
     this.container.add(rangeHeader);
 
     const strategyHeader = this.scene.make.text({});
@@ -114,7 +114,7 @@ export class ChargingStationStats {
       sum += v.getPowerRelativeToSocAndLosses(this.current.power);
     });
     const load = (Math.floor((sum/1000)*10)) / 10;
-    this.infoText.setText("KW : "+this.current.power/1000+" Load: "+load);
+    this.infoText.setText("kW: "+this.current.power/1000+" Load: "+load);
   }
 
   cleanup(): void {

@@ -58,7 +58,7 @@ export class VehicleInfo {
     const rangeLabel = this.scene.make.text({});
     rangeLabel.setPosition(10, 40);
     rangeLabel.setStyle(CommonStyle.NORMAL_STYLE);
-    rangeLabel.setText('Range kms');
+    rangeLabel.setText('Range km');
     this.container.add(rangeLabel);
 
     this.rangeValue = this.scene.make.text({});

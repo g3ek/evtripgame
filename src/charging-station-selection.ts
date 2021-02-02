@@ -11,12 +11,15 @@ import {LevelScore} from "./level-score";
 
 export class ChargingStationSelection {
 
+  private readonly DEFAULT_TEXT = "Add charging station";
+
   private eventDispatcher: EvtripEventDispatcher;
   private backScreen: Graphics;
   private distanceSelected: number = null;
   private container: Container;
   private levelScore: LevelScore;
   private titleMessage: Text;
+
   private choseCapacity: ChoseNumberComponent;
 
   constructor(eventDispatcher: EvtripEventDispatcher, levelScore: LevelScore) {
@@ -41,7 +44,7 @@ export class ChargingStationSelection {
     this.container.add(this.backScreen);
 
     this.titleMessage = scene.make.text({});
-    this.titleMessage.setText("Add charging station")
+    this.titleMessage.setText(this.DEFAULT_TEXT)
     this.titleMessage.setPosition(10, 10);
     this.titleMessage.setStyle(CommonStyle.NORMAL_STYLE); // need to set, probably a bug
     this.container.add(this.titleMessage);
@@ -85,6 +88,7 @@ export class ChargingStationSelection {
         if (requiredMoney <= this.levelScore.money) {
           this.eventDispatcher.emit('addchargingstation', power, distance, slots);
           this.levelScore.buy(requiredMoney);
+          this.titleMessage.setText(this.DEFAULT_TEXT);
         } else {
           this.titleMessage.setText("Not enough $!");
         }

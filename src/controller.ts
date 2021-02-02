@@ -58,9 +58,9 @@ export class Controller {
       if (!needToCharge) {
         vehicle.distance = distance;
         if (vehicle.totalDistance > RouteGraphics.DISTANCE_METRES) {
+          this.eventDispatcher.emit('vehiclefinished', vehicle);
           this.routeGraphics.removeVehicle(vehicle);
           this._vehicles = this._vehicles.filter(v => v !== vehicle);
-          this.eventDispatcher.emit('vehiclefinished', vehicle);
         } else if (vehicle.soc < 0) {
           this.eventDispatcher.emit("gameover");
         }
