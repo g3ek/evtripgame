@@ -27,7 +27,7 @@ export class StartScene extends Phaser.Scene {
       this.scene.start("help");
     });
 
-    const version = this.add.text(360, 1100, "Send feedback to geek@electric.brussels\n\n                             v0.123", CommonStyle.NORMAL_STYLE);
+    const version = this.add.text(360, 1100, "Send feedback to geek@electric.brussels\n\n                             v0.124", CommonStyle.NORMAL_STYLE);
     version.setOrigin(0.5, 0.5);
   }
 }

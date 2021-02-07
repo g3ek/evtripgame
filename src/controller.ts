@@ -170,4 +170,12 @@ export class Controller {
     vehicle.startTime = this.clock.time; // start charging or moving time
     vehicle.startSOC = vehicle.soc;
   }
+
+  nearChargingStation(distance: number): boolean {
+    return this.chargingStations.some(cs => {
+      const min = cs.locationInMeters - 5000;
+      const max = cs.locationInMeters + 5000;
+      return distance > min && distance < max;
+    });
+  }
 }

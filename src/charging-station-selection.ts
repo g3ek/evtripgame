@@ -8,6 +8,7 @@ import {ChoseNumberComponent} from "./chose-number-component";
 import {CommonStyle} from "./common-style";
 import {GameButton} from "./game-button";
 import {LevelScore} from "./level-score";
+import {Controller} from "./controller";
 
 export class ChargingStationSelection {
 
@@ -19,12 +20,15 @@ export class ChargingStationSelection {
   private container: Container;
   private levelScore: LevelScore;
   private titleMessage: Text;
-
   private choseCapacity: ChoseNumberComponent;
+  private choseSlots: ChoseNumberComponent;
+  private controller: Controller;
+  private costField: Text;
 
-  constructor(eventDispatcher: EvtripEventDispatcher, levelScore: LevelScore) {
+  constructor(eventDispatcher: EvtripEventDispatcher, levelScore: LevelScore, controller: Controller) {
     this.eventDispatcher = eventDispatcher;
     this.levelScore = levelScore;
+    this.controller = controller;
   }
 
   create(scene: Scene): void {
@@ -37,9 +41,9 @@ export class ChargingStationSelection {
         color: 0xffffff
       }
     });
-    this.backScreen.fillRoundedRect(0, 0, 400, 280, 10);
+    this.backScreen.fillRoundedRect(0, 0, 400, 320, 10);
     this.backScreen.lineStyle(5, 0x000000);
-    this.backScreen.strokeRoundedRect(0, 0, 400, 280);
+    this.backScreen.strokeRoundedRect(0, 0, 400, 320);
     this.backScreen.setDepth(1);
     this.container.add(this.backScreen);
 
@@ -55,14 +59,26 @@ export class ChargingStationSelection {
     containerCapacity.setPosition(10, 50);
 
     let slotValues = [2, 4, 8, 10];
-    let choseSlots = new ChoseNumberComponent(slotValues);
-    let containerSlots = choseSlots.create(scene, 110);
+    this.choseSlots = new ChoseNumberComponent(slotValues);
+    let containerSlots = this.choseSlots.create(scene, 110);
     this.container.add(containerSlots);
     containerSlots.setPosition(10, 120);
 
+    this.costField = scene.make.text({});
+    this.costField.setStyle(CommonStyle.NORMAL_STYLE);
+    this.costField.setText("Cost: $20000");
+    this.costField.setPosition(10, 175);
+    this.container.add(this.costField);
+    this.choseSlots.setAction(() => {
+      this.calculateAndSetCost();
+    });
+    this.choseCapacity.setAction(() => {
+      this.calculateAndSetCost();
+    });
+
     let distanceSelected = scene.make.text({});
     distanceSelected.setText("Distance: select on road")
-    distanceSelected.setPosition(10, 170);
+    distanceSelected.setPosition(10, 210);
     distanceSelected.setStyle(CommonStyle.NORMAL_STYLE); // need to set, probably a bug
     this.container.add(distanceSelected);
 
@@ -78,13 +94,15 @@ export class ChargingStationSelection {
     this.container.add(addButtonContainer);
     const addButton = new GameButton();
     addButton.create(scene, addButtonContainer, "Add", 150);
-    addButtonContainer.setPosition(10, 220);
+    addButtonContainer.setPosition(10, 255);
     addButton.setAction(() => {
-      if (this.distanceSelected !== null) {
+      if (this.controller.nearChargingStation(this.distanceSelected)) {
+        this.titleMessage.setText("Location not available");
+      } else if (this.distanceSelected !== null) {
         let power = this.choseCapacity.getValue();
         let distance = this.distanceSelected;
-        let slots = choseSlots.getValue();
-        const requiredMoney = power * (slots/2);
+        let slots = this.choseSlots.getValue();
+        const requiredMoney = this.calculateAndSetCost();
         if (requiredMoney <= this.levelScore.money) {
           this.eventDispatcher.emit('addchargingstation', power, distance, slots);
           this.levelScore.buy(requiredMoney);
@@ -100,7 +118,7 @@ export class ChargingStationSelection {
     this.container.add(closeButtonContainer);
     const closeButton = new GameButton();
     closeButton.create(scene, closeButtonContainer, "Close", 160);
-    closeButtonContainer.setPosition(170, 220);
+    closeButtonContainer.setPosition(170, 255);
     closeButton.setAction(() => {
       this.show();
     });
@@ -110,22 +128,17 @@ export class ChargingStationSelection {
     this.choseCapacity.values = this.levelScore.getLevel().capacities;
   }
 
-  private validate(messageElement: HTMLParagraphElement, distanceField: HTMLInputElement) {
-    if (!distanceField.value.match("^[0-9]+$")) { // only accept numbers, nothing else
-      messageElement.textContent = "Distance data incorrect.";
-      return false;
-    } else {
-      const distance: number = Number(distanceField.value);
-      if (distance * 1000 > RouteGraphics.DISTANCE_METRES) {
-        messageElement.textContent = "Route is "+(RouteGraphics.DISTANCE_METRES/1000);
-        return false;
-      }
-    }
-    return true;
-  }
-
   show() {
     this.titleMessage.setText("Add charging station");
     this.container.visible = !this.container.visible
+  }
+
+  calculateAndSetCost(): number {
+    let power = this.choseCapacity.getValue();
+    let distance = this.distanceSelected;
+    let slots = this.choseSlots.getValue();
+    const requiredMoney = power * (slots/2);
+    this.costField.setText("Cost: $"+requiredMoney);
+    return requiredMoney;
   }
 }

@@ -60,7 +60,7 @@ export class MainScene extends Phaser.Scene {
       this.chargingStationStats.create(30, 250);
       this.vehicleInfo = new VehicleInfo(this, this.routeGraphics);
       this.vehicleInfo.create(70, 230);
-      this.chargingStationSelection = new ChargingStationSelection(this.eventDispatcher, this.levelScore);
+      this.chargingStationSelection = new ChargingStationSelection(this.eventDispatcher, this.levelScore, this.controller);
       this.chargingStationSelection.create(this);
       this.timeFactorChooser = new ChoseNumberComponent([1, 5, 10, 15, 20, 25, 35, 40]);
       let timeChooserContainer = this.timeFactorChooser.create(this, 140, 'x', true);
