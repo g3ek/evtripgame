@@ -7,6 +7,8 @@ import {RouteGraphics} from "./route-graphics";
 import {AbstractChargingStrategy} from "./charging-strategy";
 import {Clock} from "./clock";
 import {BlinkTime} from "./blinker";
+import {GameButton} from "./game-button";
+import {EvtripEventDispatcher} from "./evtrip-event-dispatcher";
 import Container = Phaser.GameObjects.Container;
 import Group = Phaser.GameObjects.Group;
 import Text = Phaser.GameObjects.Text;
@@ -21,11 +23,13 @@ export class ChargingStationStats {
   private textsGroup: Group;
   private clock: Clock;
   private infoText: Text;
+  private eventDispatcher: EvtripEventDispatcher;
 
-  constructor(scene: Scene, routeGraphics: RouteGraphics, clock: Clock) {
+  constructor(scene: Scene, routeGraphics: RouteGraphics, clock: Clock, eventDispatcher: EvtripEventDispatcher) {
     this.scene = scene;
     this.routeGraphics = routeGraphics;
     this.clock = clock;
+    this.eventDispatcher = eventDispatcher;
 
   }
 
@@ -55,6 +59,16 @@ export class ChargingStationStats {
     strategyHeader.setPosition(140, 50);
     strategyHeader.setText("Strategy");
     this.container.add(strategyHeader);
+
+    const editButtonContainer = this.scene.make.container({});
+    const editButton = new GameButton();
+    editButton.create(this.scene, editButtonContainer, "Edit", 100);
+    editButtonContainer.setPosition(280, 10),
+    this.container.add(editButtonContainer);
+    editButton.setAction(() => {
+      this.eventDispatcher.emit('editchargingstation', this.current);
+    });
+
   }
 
   makeBackGround() {

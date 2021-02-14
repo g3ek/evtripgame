@@ -145,7 +145,7 @@ export class Controller {
     this.eventDispatcher.emit('updatechargingstation', chargingStation);
   }
 
-  private activateWaitingVehicle(chargingStation: ChargingStation): void {
+  public activateWaitingVehicle(chargingStation: ChargingStation): void {
     if (chargingStation.isOccupied() || !chargingStation.hasWaiting()) {
       return;
     }
@@ -158,11 +158,16 @@ export class Controller {
       }
       return result;
     });
-    const vehicle = vehicles[0];
-    chargingStation.removeWaiting(vehicle);
-    this.startCharging(chargingStation, vehicle);
-    this.routeGraphics.renderChargingVehicle(vehicle, chargingStation);
-    this.eventDispatcher.emit("updatechargingstation", chargingStation);
+    const freeslots = chargingStation.slots - chargingStation.occupied();
+    for(let i=0; i < freeslots; i++) {
+      const vehicle = vehicles[i];
+      chargingStation.removeWaiting(vehicle);
+      this.startCharging(chargingStation, vehicle);
+      this.routeGraphics.renderChargingVehicle(vehicle, chargingStation);
+    }
+    if (freeslots > 0) {
+      this.eventDispatcher.emit("updatechargingstation", chargingStation);
+    }
   }
 
   private afterChargingOrMoving(vehicle: Vehicle): void {

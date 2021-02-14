@@ -8,11 +8,13 @@ export class GameButton {
 
   private messageBar: Graphics;
   private textGameObject: Text;
+  private container: Container;
 
   constructor() {
   }
 
   create(scene: Scene, container: Container, text: string, width: number): void {
+    this.container = container;
     this.textGameObject = scene.make.text({
       color: 'white'
     });
@@ -54,5 +56,9 @@ export class GameButton {
 
   setText(text: string) {
     this.textGameObject.setText(text);
+  }
+
+  visible(on: boolean) {
+    this.container.visible = on;
   }
 }

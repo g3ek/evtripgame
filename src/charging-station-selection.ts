@@ -9,6 +9,7 @@ import {CommonStyle} from "./common-style";
 import {GameButton} from "./game-button";
 import {LevelScore} from "./level-score";
 import {Controller} from "./controller";
+import {ChargingStation} from "./charging-station";
 
 export class ChargingStationSelection {
 
@@ -24,6 +25,9 @@ export class ChargingStationSelection {
   private choseSlots: ChoseNumberComponent;
   private controller: Controller;
   private costField: Text;
+  private chargingStation: ChargingStation = null;
+  private editButton: GameButton;
+  private addButton: GameButton;
 
   constructor(eventDispatcher: EvtripEventDispatcher, levelScore: LevelScore, controller: Controller) {
     this.eventDispatcher = eventDispatcher;
@@ -86,16 +90,41 @@ export class ChargingStationSelection {
       if (distance >= 0 && distance <= RouteGraphics.DISTANCE_METRES) {
         const kms = Math.floor(distance / 1000);
         distanceSelected.setText("Distance: " + kms);
-        this.distanceSelected = kms*1000;
+        this.distanceSelected = kms * 1000;
+      }
+    });
+
+    const editButtonContainer = scene.make.container({});
+    this.container.add(editButtonContainer);
+    this.editButton = new GameButton();
+    this.editButton.create(scene, editButtonContainer, "Save", 150);
+    editButtonContainer.setPosition(10, 255);
+    editButtonContainer.visible = false;
+    this.editButton.setAction(() => {
+      if (this.choseCapacity.getValue() > this.chargingStation.power ||
+        this.choseSlots.getValue() > this.chargingStation.slots) {
+        const requiredMoney = this.calculateAndSetCost();
+        if (requiredMoney <= this.levelScore.money) {
+          this.chargingStation.slots = this.choseSlots.getValue();
+          this.chargingStation.power = this.choseCapacity.getValue();
+          this.eventDispatcher.emit('updatechargingstation', this.chargingStation);
+          this.levelScore.buy(requiredMoney);
+          this.titleMessage.setText(this.DEFAULT_TEXT);
+          this.container.visible = false;
+        } else {
+          this.titleMessage.setText("Not enough $!");
+        }
+      } else {
+        this.titleMessage.setText("Upgrade only.");
       }
     });
 
     const addButtonContainer = scene.make.container({});
     this.container.add(addButtonContainer);
-    const addButton = new GameButton();
-    addButton.create(scene, addButtonContainer, "Add", 150);
+    this.addButton = new GameButton();
+    this.addButton.create(scene, addButtonContainer, "Add", 150);
     addButtonContainer.setPosition(10, 255);
-    addButton.setAction(() => {
+    this.addButton.setAction(() => {
       if (this.controller.nearChargingStation(this.distanceSelected)) {
         this.titleMessage.setText("Location not available");
       } else if (this.distanceSelected !== null) {
@@ -107,6 +136,7 @@ export class ChargingStationSelection {
           this.eventDispatcher.emit('addchargingstation', power, distance, slots);
           this.levelScore.buy(requiredMoney);
           this.titleMessage.setText(this.DEFAULT_TEXT);
+          this.container.visible = false;
         } else {
           this.titleMessage.setText("Not enough $!");
         }
@@ -120,7 +150,7 @@ export class ChargingStationSelection {
     closeButton.create(scene, closeButtonContainer, "Close", 160);
     closeButtonContainer.setPosition(170, 255);
     closeButton.setAction(() => {
-      this.show();
+      this.container.visible = false;
     });
   }
 
@@ -129,16 +159,36 @@ export class ChargingStationSelection {
   }
 
   show() {
+    this.chargingStation = null;
+    this.editButton.visible(false);
+    this.addButton.visible(true);
     this.titleMessage.setText("Add charging station");
-    this.container.visible = !this.container.visible
+    this.container.visible = true;
+  }
+
+  modify(chargingStation: ChargingStation) {
+    this.chargingStation = chargingStation;
+    this.editButton.visible(true);
+    this.addButton.visible(false);
+    this.choseCapacity.setValue(chargingStation.power);
+    this.choseSlots.setValue(chargingStation.slots);
+    this.titleMessage.setText("Edit charging station");
+    this.container.visible = true;
   }
 
   calculateAndSetCost(): number {
-    let power = this.choseCapacity.getValue();
-    let distance = this.distanceSelected;
-    let slots = this.choseSlots.getValue();
-    const requiredMoney = power * (slots/2);
-    this.costField.setText("Cost: $"+requiredMoney);
-    return requiredMoney;
+    if (this.chargingStation === null) {
+      let power = this.choseCapacity.getValue();
+      let slots = this.choseSlots.getValue();
+      const requiredMoney = power * (slots / 2);
+      this.costField.setText("Cost: $" + requiredMoney);
+      return requiredMoney;
+    } else {
+      let power = this.choseCapacity.getValue();
+      let slots = this.choseSlots.getValue() - this.chargingStation.slots;
+      const requiredMoney = power * (slots / 2);
+      this.costField.setText("Cost: $" + requiredMoney);
+      return requiredMoney;
+    }
   }
 }

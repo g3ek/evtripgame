@@ -237,4 +237,9 @@ export class RouteGraphics {
       cs.destroy();
     });
   }
+
+  updateChargingStation(chargingStation: ChargingStation) {
+    let css = this.findChargingStationSprite(chargingStation);
+    css.update();
+  }
 }

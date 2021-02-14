@@ -107,4 +107,8 @@ export class ChargingStationSprite {
   destroy() {
     this._container.destroy();
   }
+
+  update() {
+    this._slotsText.setText(this.chargingStation.occupied()+"/"+this.chargingStation.slots);
+  }
 }

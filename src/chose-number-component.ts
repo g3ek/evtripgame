@@ -107,6 +107,11 @@ export class ChoseNumberComponent {
     return this._values[this.valueIndex];
   }
 
+  setValue(value: number): void {
+    this.valueIndex = this._values.indexOf(value);
+    this.field.setText(this.prefix+this._values[this.valueIndex]);
+  }
+
   setAction(action: () => void) {
     this.action = action;
   }
